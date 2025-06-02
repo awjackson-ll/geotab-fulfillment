@@ -1,5 +1,6 @@
 import React, { useState, type JSX } from 'react';
 import './LoginPage.css';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface LoginFormProps {
   onLogin: (username: string, password: string) => void;
@@ -9,7 +10,7 @@ function LoginPage({ onLogin }: LoginFormProps): JSX.Element {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,6 +24,10 @@ function LoginPage({ onLogin }: LoginFormProps): JSX.Element {
       setIsLoading(false);
     }
     console.log('Login attempt with:', username);
+  };
+
+  const togglePasswordVisibility = () => {
+    setPasswordVisible(!passwordVisible);
   };
 
   return (
@@ -49,24 +54,38 @@ function LoginPage({ onLogin }: LoginFormProps): JSX.Element {
             <form onSubmit={handleSubmit} className="loginForm">
               <div className="formGroup">
                 <input
+                  id="email"
+                  name="email"
                   type="email"
+                  autoComplete="email"
                   placeholder="Email"
+                  required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  required
                   className="formInput"
                 />
               </div>
               
               <div className="formGroup">
                 <input
-                  type="password"
+                  id="password"
+                  name="password"
+                  type={passwordVisible ? 'text' : 'password'}
+                  autoComplete="current-password"
                   placeholder="Password"
+                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  required
                   className="formInput"
                 />
+                <button
+                  type="button"
+                  onClick={togglePasswordVisibility}
+                  className="togglePasswordVisibilityButton"
+                  aria-label={passwordVisible ? 'Hide password' : 'Show password'}
+                >
+                  {passwordVisible ? <EyeOff size={20} /> : <Eye size={20} />}
+                </button>
               </div>
               
               <button

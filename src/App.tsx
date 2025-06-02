@@ -2,14 +2,12 @@ import { useState, useEffect } from 'react';
 import LoginPage from './pages/LoginPage';
 import PortalPage from './pages/PortalPage';
 import './App.css';
-import { Navigate, createBrowserRouter, RouterProvider } from 'react-router';
-import { useNavigate } from 'react-router-dom';
+import { PrimeReactProvider } from 'primereact/api';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 
 
-
 function App() {
-  const navigate = useNavigate();
   const { auth, login, logout } = useAuth();
   const [error, setError] = useState<string | null | undefined>(null);
   const [loading, setLoading] = useState(false);
@@ -50,43 +48,25 @@ function App() {
         <h1>Loading...</h1>
       </div>
     );
-  }
-
-  const router = createBrowserRouter([
-    { 
-      path: '/',
-      element: <App />,
-      errorElement: <h1>404 Page Not Found</h1>
-    },
-    {
-      path: '/login',
-      element: <LoginPage onLogin={handleLogin} />
-    },
-    {
-      path: '/portal',
-      element: <PortalPage />
-    }
-  ]);
-
-  function isAuthenticated() {
-    if (!auth.isAuthenticated) {
-      navigate("/login");
-      return (
-        <div>
-          <h1>{error}</h1>
-        </div>
-      );
-    } else {
-      navigate("/portal");
-    }
-  }
+  };
 
   return (
-    <>
-      <RouterProvider router={router} />
-      {isAuthenticated()}
-    </>
+    <PrimeReactProvider>
+      <Router>
+        {!auth.isAuthenticated ? (
+            <LoginPage onLogin={handleLogin} />
+        ) : (
+          <Routes>
+            <Route 
+              path="/" 
+              element={<PortalPage auth={auth} onLogout={handleLogout} />} 
+            />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        )}
+      </Router>
+    </PrimeReactProvider>
   )
 }
 
-export default App
+export default App;

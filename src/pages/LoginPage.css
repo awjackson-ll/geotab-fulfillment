@@ -85,6 +85,7 @@
 .formGroup {
   margin-bottom: 20px;
   width: 100%;
+  position: relative;
 }
 
 .formInput {
@@ -96,6 +97,20 @@
   font-size: 16px;
   box-sizing: border-box;
   box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.25);
+}
+
+.togglePasswordVisibilityButton {
+  color: #757575;
+  position: absolute;
+  right: 10px;
+  top: 76%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  z-index: 1;
+  margin: 0;
+  padding: 0;
 }
 
 .loginButton {
@@ -131,12 +146,4 @@
   font-size: 64px;
   font-weight: 700;
   margin: 0;
-}
-
-.imageCredit {
-  position: absolute;
-  bottom: 10px;
-  right: 10px;
-  font-size: 12px;
-  opacity: 0.7;
 }
