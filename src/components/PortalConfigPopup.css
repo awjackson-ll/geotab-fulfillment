@@ -1,4 +1,4 @@
-.portalConfigurationContainer {
+.portalConfigContainer {
   position: fixed;
   top: 0;
   left: 0;
@@ -11,7 +11,7 @@
   z-index: 999;
 }
 
-.portalConfigurationViewport {
+.portalConfigViewport {
   width: 500px;
   height: 500px;
   background-color: #fff;
@@ -19,3 +19,76 @@
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
+
+.portalConfigHeader {
+  display: flex;
+}
+
+.portalConfigHeader button {
+  margin-left: auto;
+}
+
+.portalConfigTitle {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  padding: 0;
+}
+
+.portalConfigContent {
+  width: 100%;
+  height: fit-content;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Fulfillment Type Container */
+.typeContainer {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.configStepTitle {
+  font-size: 24px;
+  font-weight: 500;
+}
+
+.typeContainer button {
+  width: 200px;
+  height: 200px;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background-color: transparent;
+  background-size: 300%;
+  background-position: center;
+  display: flex;
+  justify-content: center;
+  border-radius: 10px;
+  transition: all 0.25s ease-in-out;
+  font-size: 28px;
+  font-weight: 700;
+  color: white;
+}
+
+.typeButtonGeotab {
+  background: linear-gradient(to bottom, rgba(8, 51, 77, 1) 0%, rgba(8, 51, 77, 0.5) 25%, rgba(8, 51, 77, 0) 50%),
+  url("/src/assets/blueSemi.jpg");
+}
+
+.typeButtonEasyVote {
+  background: linear-gradient(to bottom, rgba(8, 51, 77, 1) 0%, rgba(8, 51, 77, 0.5) 25%, rgba(8, 51, 77, 0) 50%),
+  url("/src/assets/americanFlag.jpg");
+}
+
+.typeContainer button:hover {
+  cursor: pointer;
+  transform: scale(1.05);
+}
+
+/* Geotab Pending Order Container */

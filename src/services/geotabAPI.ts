@@ -1,8 +1,4 @@
-import type { Organization, Site, SuperTag } from '../types';
-
-const API_BASE_URL = 'https://networkasset-conductor.link-labs.com';
-const GEOCODE_API_URL = 'https://api.george.airfinder.com/reverse.php';
-const CLIENT_EDGE_API_URL = 'https://clientedge-conductor.link-labs.com';
+const MY_AMDIN_API_URL = 'https://myadminapi.geotab.com/v2/MyAdminApi.ashx';
 
 export const apiService = {
   fetchOrganizations: async (authHeader: string): Promise<Organization[]> => {
