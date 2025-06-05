@@ -24,6 +24,12 @@ export interface Organization {
   [key: string]: any;
 }
 
+export interface PendingOrder {
+  id: string;
+  value: string;
+  [key: string]: any;
+}
+
 export interface TagEvent {
   uuid: string;
   time: string;

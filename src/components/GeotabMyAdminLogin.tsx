@@ -1,14 +1,39 @@
 import React, { useState, useEffect } from 'react';
+import { myAdminApi } from '../services/geotabAPI';
 
 function GeotabMyAdminLogin({ data, setData, onNavigate, stepConfig }: any) {
   const [localData, setLocalData] = useState(data[stepConfig.id] || { name: '', email: '' });
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState('service.geotab.device.admin@link-labs.com');
+  const [password, setPassword] = useState('#G30ta@@1rf1nd3r@nywh3r3#');
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (localStorage.getItem("myAdminSessionId")) {
+      try {
+        // myAdminApi.getPendingOrders(localStorage.getItem("myAdminSessionId") as string);
+        if (stepConfig.nextStepId) {
+          onNavigate(stepConfig.nextStepId);
+        } else {
+          // This could be a terminal step if no nextStepId is defined
+          alert("No next step defined from here. Consider this a submission point or add nextStepId.");
+          // Potentially call a generic onSubmit if this is a valid end point
+        }
+      } catch (error) {
+        console.error("Error getting pending orders:", error);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     // Keep localData in sync if global data for this step changes (e.g., navigating back)
     setLocalData(data[stepConfig.id] || { name: '', email: '' });
   }, [data, stepConfig.id]);
+
+  useEffect(() => {
+    // Enable the button only if the username field is not empty
+    setIsButtonDisabled(username.trim() === '');
+  }, [username]);
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -30,21 +55,22 @@ function GeotabMyAdminLogin({ data, setData, onNavigate, stepConfig }: any) {
     }
   };
 
-  useEffect(() => {
-    // Enable the button only if the username field is not empty
-    setIsButtonDisabled(username.trim() === '');
-  }, [username]);
-
-  const handleInputChange = (event: any) => {
+  const handleEmailChange = (event: any) => {
     setUsername(event.target.value);
+  };
+
+  const handlePasswordChange = (event: any) => {
+    setPassword(event.target.value);
   };
 
   const handleSubmit = (event: any) => {
     event.preventDefault();
-    // Handle form submission logic here
+    myAdminApi.authenticate(username, password);
     console.log('Username submitted:', username);
-    // For a real app, you would typically make an API call here
+    handleNext();
   };
+
+
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center font-sans">
@@ -71,9 +97,25 @@ function GeotabMyAdminLogin({ data, setData, onNavigate, stepConfig }: any) {
               autoComplete="email"
               required
               value={username}
-              onChange={handleInputChange}
+              onChange={handleEmailChange}
               className="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
               placeholder="Username"
+            />
+          </div>
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              Password
+            </label>
+            <input
+              id="password"
+              name="password"
+              type="password" // Using type="email" for better semantics and potential browser validation
+              autoComplete="email"
+              required
+              value={password}
+              onChange={handlePasswordChange}
+              className="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+              placeholder="Password"
             />
           </div>
 

@@ -1,8 +1,15 @@
 import React, { useState, useEffect } from 'react';
+import { myAdminApi } from '../services/geotabAPI';
 
 function GeotabPendingOrder({ data, setData, onNavigate, stepConfig }: any) {
   const [localData, setLocalData] = useState(data[stepConfig.id] || { name: '', email: '' });
+  const [pendingOrders, setPendingOrders] = useState<any>(null);
 
+  function doFoo() {
+    const json = myAdminApi.getPendingOrders(localStorage.getItem("myAdminSessionId") as string);
+    setPendingOrders(json);
+  }
+  
   useEffect(() => {
     // Keep localData in sync if global data for this step changes (e.g., navigating back)
     setLocalData(data[stepConfig.id] || { name: '', email: '' });
@@ -28,55 +35,11 @@ function GeotabPendingOrder({ data, setData, onNavigate, stepConfig }: any) {
     }
   };
 
-const request = new XMLHttpRequest();
-  request.open("POST", "https://myadminapi.geotab.com/v2/MyAdminApi.ashx", true);
-  request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-  request.onreadystatechange = function () {
-    if (request.readyState === 4) {
-        if (request.status === 200) {
-          const json = JSON.parse(request.responseText);
-          if (json.result) {
-              // Work with your result
-              // Simple example just alerts its presence
-              console.log(json.result);
-          }
-        }
-    }
-  };
-  // Send the HTTP BODY in the JSON-RPC format. ID is ignored
-  // and can be set to -1.
-  // This example demonstrates authentication using HTTP POST.
-//   const authenticateParams = {
-//     "id" : -1,
-//     "method" : "Authenticate",
-//     "params" : {
-//         "username":"service.geotab.device.admin@link-labs.com",
-//         "password":"#G30ta@@1rf1nd3r@nywh3r3#"
-//     }
-//   };
-// request.send("JSON-RPC=" + encodeURIComponent(JSON.stringify(authenticateParams)));
-
-
-// Send the HTTP BODY in the JSON-RPC format. ID is ignored
-// and can be set to -1.
-// The method being called is “GetDevicePlans”.
-// The “GetDevicePlans” method’s parameters are then passed in the “params” property
-const apiMethod = {
-  "id" : -1,
-  "method" : "GetOnlineOrderStatus",
-  "params" : {
-    "apiKey":"5a84129c-4a21-4891-a797-58c06606ec1a",
-    "forAccount":"LLAB01",
-    "sessionId":"53a95e55-f00b-45a5-bec8-215a37d27aa2"
-  }
-};
-request.send("JSON-RPC=" + encodeURIComponent(JSON.stringify(apiMethod)));
-
   return (
     <>
       <p className="configStepTitle">{stepConfig.title}</p>
       <div className="geotabContainer">
-        
+        <button onClick={() => doFoo()}>Get Pending Orders</button>
       </div>
     </>
   );
