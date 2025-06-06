@@ -1,7 +1,7 @@
-import type { PendingOrder } from '../types';
+import type { PendingOrder, Order } from '../types';
 
 const MYADMIN_API_URL = 'https://myadminapi.geotab.com/v2/MyAdminApi.ashx';
-const MYADMIN_SHIPPING_API_URL = 'https://myadmin.geotab.com/api/v3/shipping/partner';
+const MYADMIN_SHIPPING_API_URL = 'https://cors-anywhere.herokuapp.com/https://myadmin.geotab.com/api/v3/shipping/partner';
 const API_KEY = "5a84129c-4a21-4891-a797-58c06606ec1a";
 // Figure out a way to get the authHeader passed to every API call instead of just the sessionId
 // const [authHeader, setAuthHeader] = useState(new Headers({"Auth-SessionId": sessionId}));
@@ -53,8 +53,7 @@ export const myAdminApi = {
       
       const requestOptions: RequestInit = {
         method: "GET",
-        headers: headers,
-        credentials: "include" // Include credentials for cross-origin requests
+        headers: headers
       };
       
       console.log("Fetching pending orders with URL:", url.toString());
@@ -72,6 +71,43 @@ export const myAdminApi = {
       return json;
     } catch (error) {
       console.error("Error getting pending orders:", error);
+      throw error;
+    }
+  },
+
+  getAllOrders: async (sessionId: string): Promise<Order[]> => {
+    if (!sessionId) {
+      console.error("No session ID provided");
+      return [];
+    }
+    
+    try {
+      const headers = new Headers();
+      headers.append("Auth-SessionId", sessionId);
+      
+      // Create the URL with query parameters
+      const url = new URL(MYADMIN_SHIPPING_API_URL);
+      
+      const requestOptions: RequestInit = {
+        method: "GET",
+        headers: headers
+      };
+      
+      console.log("Fetching pending orders with URL:", url.toString());
+      console.log("Using session ID:", sessionId);
+      
+      const response = await fetch(url.toString(), requestOptions);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API Error (${response.status}): ${errorText || response.statusText}`);
+      }
+      
+      const json = await response.json();
+      console.log("Orders response:", json);
+      return json;
+    } catch (error) {
+      console.error("Error getting orders:", error);
       throw error;
     }
   }

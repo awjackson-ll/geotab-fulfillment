@@ -30,6 +30,12 @@ export interface PendingOrder {
   [key: string]: any;
 }
 
+export interface Order {
+  id: string;
+  value: string;
+  [key: string]: any;
+}
+
 export interface TagEvent {
   uuid: string;
   time: string;

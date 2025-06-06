@@ -83,3 +83,8 @@
 .portalResultViewport::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+.geotabPendingOrderContainer {
+  display: flex;
+  flex-direction: column;
+}
