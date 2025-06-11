@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import LoginPage from './pages/LoginPage';
 import PortalPage from './pages/PortalPage';
-import './App.css';
 import { PrimeReactProvider } from 'primereact/api';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';

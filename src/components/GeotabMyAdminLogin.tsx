@@ -3,8 +3,8 @@ import { myAdminApi } from '../services/geotabAPI';
 
 function GeotabMyAdminLogin({ data, setData, onNavigate, stepConfig }: any) {
   const [localData, setLocalData] = useState(data[stepConfig.id] || { name: '', email: '' });
-  const [username, setUsername] = useState('service.geotab.device.admin@link-labs.com');
-  const [password, setPassword] = useState('#G30ta@@1rf1nd3r@nywh3r3#');
+  const [username, setUsername] = useState(import.meta.env.VITE_GEOTAB_SERVICE_ACCOUNT_EMAIL);
+  const [password, setPassword] = useState(import.meta.env.VITE_GEOTAB_SERVICE_ACCOUNT_PASSWORD);
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
   const [sessionId, setSessionId] = useState<string | null>(null);
 
