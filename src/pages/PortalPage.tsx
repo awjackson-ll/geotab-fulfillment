@@ -1,5 +1,4 @@
 import React, { useState, type JSX } from 'react';
-import './PortalPage.css';
 import type { AuthState } from '../types';
 import PortalConfigPopup from '../components/PortalConfigPopup';
 
@@ -13,30 +12,30 @@ function PortalPage({ auth, onLogout }: AuthenticatedAppProps): JSX.Element {
 
   return (
     <>
-      <div className="portalContainer">
+      <div className="h-screen w-screen flex flex-col">
         {showConfigPopup ? <PortalConfigPopup setShowConfigPopup={setShowConfigPopup}/> : null}
-        <div className="portalBanner">
-          <div className="logoContainer">
+        <div className="flex flex-row w-full h-24 bg-white shadow-md z-1">
+          <div className="flex flex-col items-start ml-5 mt-5">
             <img 
               src="/src/assets/linkLabsLogo.png"
               alt="Link Labs Logo" 
-              className="linkLabsLogo" 
+              className="w-48 mb-1" 
               />
             <img 
               src="/src/assets/geotabLogo.png" 
               alt="Geotab Logo" 
-              className="geotabLogo" 
+              className="w-48 mb-1" 
               />
           </div>
           <button onClick={onLogout}>Logout</button>
           <button onClick={() => setShowConfigPopup(true)}>Config</button>
         </div>
-        <div className="portalWindow">
-          <div className="portalSidebar">
+        <div className="bg-[#F9FAFB] flex flex-row w-full h-[calc(100%-100px)]">
+          <div className="w-24 bg-white shadow-md">
             
           </div>
-          <div className="portalContent">
-            <div className="portalResultViewport">
+          <div className="w-[calc(100%-100px)]">
+            <div className="w-[calc(100%-50px)] h-[calc(100%-50px)] rounded-[10px] m-6 pl-5 bg-[#F0F5E6] border border-solid border-[#8CB82B] box-border overflow-y-auto font-[300] font-[Cascadia Mono, monospace] text-[#8CB82B] text-xl shadow-md">
             <p>&gt;</p>
             </div>
           </div>

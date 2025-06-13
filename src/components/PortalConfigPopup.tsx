@@ -88,21 +88,21 @@ function PortalConfigPopup({ setShowConfigPopup }: { setShowConfigPopup: (show: 
 
 
   return (
-    <div className="portalConfigContainer">
-      <div className="portalConfigViewport">
-        <div className="portalConfigHeader">
-          <p className="portalConfigTitle">Configuration Menu</p>
-          <button onClick={() => setShowConfigPopup(false)}><X /></button>
+    <div className="fixed top-0 left-0 w-screen h-screen flex justify-center items-center bg-[rgba(0,0,0,0.33)] z-[999]">
+      <div className="bg-white p-5 rounded w-[500px] min-h-[500px] max-h-[80vh] h-fit shadow-md">
+        <div className="flex">
+          <p className="text-[28px] font-[600] m-0 p-0">Configuration Menu</p>
+          <button className="ml-auto" onClick={() => setShowConfigPopup(false)}><X /></button>
         </div>
         <div className="mb-6 text-center">
             {stepsConfig.map((step, index) => (
-              <span key={step.id} className={`text-sm ${step.id === currentStepId ? 'font-bold text-indigo-600' : 'text-gray-500'}`}>
+              <span key={step.id} className={`text-sm ${step.id === currentStepId ? 'font-bold text-[#8CB82B]' : 'text-gray-500'}`}>
                 {step.title}
                 {index < stepsConfig.length - 1 && <span className="mx-1 text-gray-400">&rarr;</span>}
               </span>
             ))}
         </div>
-        <div className="portalConfigContent">
+        <div className="w-full max-h-[50vh] flex flex-col justify-start overflow-y-auto">
           <ActiveStepComponent
             data={formData}
             setData={setFormData}

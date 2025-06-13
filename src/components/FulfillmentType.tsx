@@ -23,18 +23,18 @@ function FulfillmentType({ data, setData, onNavigate, stepConfig, setNextStepId 
 
   return (
     <>
-      <p className="configStepTitle">{stepConfig.title}</p>
-      <div className="typeContainer">
-        <button
-          className="typeButtonGeotab"
+      <p className="text-[24px] font-[500]">{stepConfig.title}</p>
+      <div className="w-full h-full mt-6 flex flex-row justify-around items-center text-[24px] font-[700] text-white">
+        <div
+          className="flex justify-center items-center relative w-48 h-48 rounded-[10px] bg-[url('/src/assets/blueSemi.jpg')] bg-cover bg-center cursor-pointer transition-all duration-300 ease-in-out hover:scale-110"
           onClick={() => handleNext("selectGeotabPendingOrder")}>
-          <p>Geotab</p>
-        </button>
-        <button
-          className="typeButtonEasyVote"
+          <p className="absolute top-10">Geotab</p>
+        </div>
+        <div
+          className="flex justify-center items-center relative w-48 h-48 rounded-[10px] bg-[url('/src/assets/americanFlag.jpg')] bg-cover bg-center cursor-pointer transition-all duration-300 ease-in-out hover:scale-110"
           onClick={() => handleNext("selectEasyVote")}>
-          <p>EasyVote</p>
-        </button>
+          <p className="absolute top-10">EasyVote</p>
+        </div>
       </div>
     </>
   );

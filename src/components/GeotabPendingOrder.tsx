@@ -56,50 +56,50 @@ export const FormattedOrdersDisplay: React.FC<FormattedOrdersDisplayProps> = ({ 
   }
 
   return (
-    <div className="geotabOrderContainer">
-      <div className="geotabOrderBanner">
-        <p>Orders</p>
+    <div className="flex flex-col w-full font-[Roboto]">
+      <div className="text-[14px] font-[600] text-white m-0 p-0 w-full h-[48px] bg-[#3C5063] flex items-center leading-[1rem] tracking-normal flex-grow shadow-sm sticky top-9">
+        <p className="m-0 p-0 pl-4">Orders</p>
       </div>
-      <div className="geotabOrders">
+      <div>
         {orders.map((order) => (
           <div
             key={order.orderHeaderId}
-            className="geotabOrderTable"
+            className="pt-1 pb-1 pl-4 w-full h-fit cursor-pointer box-border border-1 border-solid border-[#E0E0E0] hover:bg-[#F0F2F7]"
             onClick={() => handleNext()}
           >
             <table>
               <tbody>
                 <tr>
-                  <td className="geotabShipmentReference">{order.shipmentReference}</td>
+                  <td className="text-[#0062a9] font-[Roboto] text-[0.875rem] leading-[1rem] font-[500] tracking-[.16px]">{order.shipmentReference}</td>
                   <td></td>
                 </tr>
                 <tr>
-                  <td className="geotabOrderLabel">PO Number:</td>
-                  <td className="geotabOrderValue">{order.purchaseOrderNumber}</td>
+                  <td className="min-w-[112px] font-[Roboto] text-[0.75rem] leading-[1rem] font-[400] tracking-[.32px]">PO Number:</td>
+                  <td className="font-[Roboto] text-[0.875rem] leading-[1rem] font-[400] tracking-[0px]">{order.purchaseOrderNumber}</td>
                 </tr>
                 <tr>
-                  <td className="geotabOrderLabel">Status:</td>
-                  <td className="geotabOrderValue">{order.shipmentStatus}</td>
+                  <td className="min-w-[112px] font-[Roboto] text-[0.75rem] leading-[1rem] font-[400] tracking-[.32px]">Status:</td>
+                  <td className="font-[Roboto] text-[0.875rem] leading-[1rem] font-[400] tracking-[0px]">{order.shipmentStatus}</td>
                 </tr>
                 <tr>
-                  <td className="geotabOrderLabel">Customer:</td>
-                  <td className="geotabOrderValue">{order.shippingContact.name}</td>
+                  <td className="min-w-[112px] font-[Roboto] text-[0.75rem] leading-[1rem] font-[400] tracking-[.32px]">Customer:</td>
+                  <td className="font-[Roboto] text-[0.875rem] leading-[1rem] font-[400] tracking-[0px]">{order.shippingContact.name}</td>
                 </tr>
                 <tr>
-                  <td className="geotabOrderLabel"></td>
-                  <td className="geotabOrderEmail">{order.shippingContact.email}</td>
+                  <td className="min-w-[112px] font-[Roboto] text-[0.75rem] leading-[1rem] font-[400] tracking-[.32px]">Customer Email:</td>
+                  <td className="text-[#575757] font-[Roboto] text-[0.75rem] leading-[1rem] font-[400] tracking-[.32px]">{order.shippingContact.email}</td>
                 </tr>
                 <tr>
-                  <td className="geotabOrderLabel">Partner:</td>
-                  <td className="geotabOrderValue">{order.resellerName}</td>
+                  <td className="min-w-[112px] font-[Roboto] text-[0.75rem] leading-[1rem] font-[400] tracking-[.32px]">Partner:</td>
+                  <td className="font-[Roboto] text-[0.875rem] leading-[1rem] font-[400] tracking-[0px]">{order.resellerName}</td>
                 </tr>
                 <tr>
-                  <td className="geotabOrderLabel"></td>
-                  <td className="geotabOrderEmail">{order.resellerEmail}</td>
+                  <td className="min-w-[112px] font-[Roboto] text-[0.75rem] leading-[1rem] font-[400] tracking-[.32px]"></td>
+                  <td className="text-[#575757] font-[Roboto] text-[0.75rem] leading-[1rem] font-[400] tracking-[.32px]">{order.resellerEmail}</td>
                 </tr>
                 <tr>
-                  <td className="geotabOrderLabel">Order Date:</td>
-                  <td className="geotabOrderValue">{formatDate(order.orderDate)}</td>
+                  <td className="min-w-[112px] font-[Roboto] text-[0.75rem] leading-[1rem] font-[400] tracking-[.32px]">Order Date:</td>
+                  <td className="font-[Roboto] text-[0.875rem] leading-[1rem] font-[400] tracking-[0px]">{formatDate(order.orderDate)}</td>
                 </tr>
               </tbody>
             </table>
@@ -175,8 +175,8 @@ function GeotabPendingOrder({ data, setData, onNavigate, stepConfig }: any) {
 
   return (
     <>
-      <p className="configStepTitle">{stepConfig.title}</p>
-      <div className="geotabContainer">
+      <p className="bg-[white] sticky top-0 font-[600] text-[24px]">{stepConfig.title}</p>
+      <div>
         {pendingOrders === null ? (
           <p>Loading orders...</p>
         ) : (
