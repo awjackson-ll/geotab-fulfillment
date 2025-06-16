@@ -3,7 +3,6 @@ import { myAdminApi } from '../services/geotabAPI';
 
 function GeotabMyAdminLogin({ setData, onNavigate, stepConfig, handleConsoleOutput }: any) {
   const MILLI_IN_A_WEEK = 604800000;
-  const [localData, setLocalData] = useState({ username: 's', password: 's' });
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
@@ -29,20 +28,16 @@ function GeotabMyAdminLogin({ setData, onNavigate, stepConfig, handleConsoleOutp
   }, []);
 
   useEffect(() => {
-    console.log('Updated localData:', localData);
-  }, [localData]);
-
-  useEffect(() => {
     // Enable the button only if the username field is not empty
     setIsButtonDisabled(username.trim() === '' || password.trim() === '');
   }, [username, password]);
 
   const handleNext = () => {
-    if (!localData.username || !localData.password) {
+    if (!username || !password) {
       alert("Please fill in all fields for " + stepConfig.title);
       return;
     }
-    setData((prevData: any) => ({ ...prevData, [stepConfig.id]: localData }));
+    setData((prevData: any) => ({ ...prevData, [stepConfig.id]: { username: username } }));
     if (stepConfig.nextStepId) {
       onNavigate(stepConfig.nextStepId);
     } else {
@@ -53,33 +48,25 @@ function GeotabMyAdminLogin({ setData, onNavigate, stepConfig, handleConsoleOutp
   };
 
   const handleEmailChange = (event: any) => {
-    console.log('Username changed to:', event.target.value);
+    console.log('Username changed to: ' + event.target.value);
     setUsername(event.target.value);
   };
 
   const handlePasswordChange = (event: any) => {
-    console.log('Password changed to:', event.target.value);
+    console.log('Password changed to: ' + event.target.value);
     setPassword(event.target.value);
   };
 
   const handleSubmit = async (event: any) => {
     event.preventDefault();
-    setLocalData({ username: username, password: password });
-    console.log(localData);
     try {
-      console.log('Username submitted:', username);
-      handleConsoleOutput(' Username submitted: ', username);
-      console.log('Attempting to authenticate...');
-      handleConsoleOutput(' Attempting to authenticate...');
-      
+      handleConsoleOutput(' Attempting to authenticate with username');
+      handleConsoleOutput('  └─' + username);
       await myAdminApi.authenticate(username, password);
-      
-      console.log('Authenticated successfully');
-      handleConsoleOutput(' Authenticated successfully');
+      handleConsoleOutput(' Authentication successful');
       handleNext();
     } catch (error) {
-      console.error("Error authenticating: ", error);
-      handleConsoleOutput(' Error authenticating: ' + error);
+      handleConsoleOutput(' Authentication failed: ' + error);
     }
   };
 

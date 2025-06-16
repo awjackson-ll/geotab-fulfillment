@@ -32,14 +32,14 @@ function PortalConfigPopup({ setShowConfigPopup, handleConsoleOutput }: PortalCo
       id: 'selectGeotabPendingOrder',
       title: 'Select Geotab Pending Order',
       component: GeotabPendingOrder,
-      nextStepId: 'reviewSubmit',
+      nextStepId: 'reviewSubmitGeotab',
       prevStepId: 'fulfillmentType',
     },
     {
       id: 'selectEasyVote',
       title: 'Select Easy Vote',
       component: EasyVote,
-      nextStepId: 'reviewSubmit',
+      nextStepId: 'reviewSubmitEasy',
       prevStepId: 'fulfillmentType',
     },
     {

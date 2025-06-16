@@ -4,7 +4,7 @@ import type { Order } from '../types';
 
 interface FormattedOrdersDisplayProps {
   orders: Order[];
-  handleNext: (order: Order) => void;
+  handleOrderSelect: (order: Order) => void;
 }
 
 // Helper function to format date
@@ -18,7 +18,7 @@ const formatDate = (dateString: string): string => {
   }
 };
 
-export const FormattedOrdersDisplay: React.FC<FormattedOrdersDisplayProps> = ({ orders, handleNext }) => {
+export const FormattedOrdersDisplay: React.FC<FormattedOrdersDisplayProps> = ({ orders, handleOrderSelect }) => {
   if (!orders || orders.length === 0) {
     return <p style={{ textAlign: 'center', color: '#666' }}>No orders to display.</p>;
   }
@@ -33,7 +33,7 @@ export const FormattedOrdersDisplay: React.FC<FormattedOrdersDisplayProps> = ({ 
           <div
             key={order.orderHeaderId}
             className="pt-1 pb-1 pl-4 w-full h-fit cursor-pointer box-border border-1 border-solid border-[#E0E0E0] hover:bg-[#F0F2F7]"
-            onClick={() => handleNext(order)}
+            onClick={() => handleOrderSelect(order)}
           >
             <table>
               <tbody>
@@ -79,7 +79,6 @@ export const FormattedOrdersDisplay: React.FC<FormattedOrdersDisplayProps> = ({ 
 };
 
 function GeotabPendingOrder({ data, setData, onNavigate, stepConfig }: any) {
-  const [localData, setLocalData] = useState(data[stepConfig.id] || { name: '', email: '' });
   const [pendingOrders, setPendingOrders] = useState<Order[] | null>(null);
 
   // async function getPendingOrders() {
@@ -115,25 +114,15 @@ function GeotabPendingOrder({ data, setData, onNavigate, stepConfig }: any) {
   }
   
   useEffect(() => {
-    setLocalData(data[stepConfig.id] || { name: '', email: '' });
-  }, [data, stepConfig.id]);
-
-  useEffect(() => {
-    // getPendingOrders();
     getAllOrders();
   }, []);
 
-  // const handleChange = (e: any) => {
-  //   const { name, value } = e.target;
-  //   setLocalData((prev: any) => ({ ...prev, [name]: value }));
-  // };
-
-  const handleNext = () => {
-    if (!localData.name || !localData.email) { // Assuming these fields are still relevant from original component structure
-      alert("Please fill in all fields for Step 1.");
+  const handleOrderSelect = (order: Order) => {
+    if (!order) {
+      alert("Please select an order.");
       return;
     }
-    setData((prevData: any) => ({ ...prevData, [stepConfig.id]: localData }));
+    setData((prevData: any) => ({ ...prevData, [stepConfig.id]: order }));
     if (stepConfig.nextStepId) {
       onNavigate(stepConfig.nextStepId);
     } else {
@@ -148,7 +137,7 @@ function GeotabPendingOrder({ data, setData, onNavigate, stepConfig }: any) {
         {pendingOrders === null ? (
           <p>Loading orders...</p>
         ) : (
-          <FormattedOrdersDisplay orders={pendingOrders} handleNext={handleNext}/>
+          <FormattedOrdersDisplay orders={pendingOrders} handleOrderSelect={handleOrderSelect}/>
         )}
       </div>
     </>
