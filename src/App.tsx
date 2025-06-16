@@ -8,8 +8,6 @@ import { useAuth } from './hooks/useAuth';
 
 function App() {
   const { auth, login, logout } = useAuth();
-  const [error, setError] = useState<string | null | undefined>(null);
-  const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(true);
 
   // Simulate initial load to check auth status
@@ -21,19 +19,14 @@ function App() {
   }, []);
 
   const handleLogin = async (username: string, password: string) => {
-    setLoading(true);
-    setError(null);
-    
     try {
       const result = await login(username, password);
       
       if (!result.success) {
-        setError(result.error);
+        console.error(result.error);
       }
     } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
-    } finally {
-      setLoading(false);
+      console.error('An unexpected error occurred. Please try again.');
     }
   };
 

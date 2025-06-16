@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 function ReviewSubmit({ data, setData, onNavigate, stepConfig }: any) {
   const [localData, setLocalData] = useState(data[stepConfig.id] || { name: '', email: '' });
@@ -8,9 +8,9 @@ function ReviewSubmit({ data, setData, onNavigate, stepConfig }: any) {
     setLocalData(data[stepConfig.id] || { name: '', email: '' });
   }, [data, stepConfig.id]);
 
-  const handleChange = (e) => {
+  const handleChange = (e: any) => {
     const { name, value } = e.target;
-    setLocalData(prev => ({ ...prev, [name]: value }));
+    setLocalData((prev: any) => ({ ...prev, [name]: value }));
   };
 
   const handleNext = () => {
@@ -18,7 +18,7 @@ function ReviewSubmit({ data, setData, onNavigate, stepConfig }: any) {
       alert("Please fill in all fields for Step 1.");
       return;
     }
-    setData(prevData => ({ ...prevData, [stepConfig.id]: localData }));
+    setData((prevData: any) => ({ ...prevData, [stepConfig.id]: localData }));
     if (stepConfig.nextStepId) {
       onNavigate(stepConfig.nextStepId);
     } else {
@@ -31,6 +31,8 @@ function ReviewSubmit({ data, setData, onNavigate, stepConfig }: any) {
   return (
     <div>
       <h1>Review & Submit</h1>
+      <button onClick={handleNext}>Next</button>
+      <button onClick={handleChange}>Change</button>
     </div>
   );
 }

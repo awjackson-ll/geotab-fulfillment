@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import './PortalConfigPopup.css';
+import { useState } from 'react';
 import { X } from 'lucide-react';
 import FulfillmentType from './FulfillmentType';
 import GeotabPendingOrder from './GeotabPendingOrder';
@@ -7,7 +6,12 @@ import EasyVote from './EasyVote';
 import ReviewSubmit from './ReviewSubmit';
 import GeotabMyAdminLogin from './GeotabMyAdminLogin';
 
-function PortalConfigPopup({ setShowConfigPopup }: { setShowConfigPopup: (show: boolean) => void }) {
+interface PortalConfigProps {
+  setShowConfigPopup: (show: boolean) => void;
+  handleConsoleOutput: (input: string) => void;
+}
+
+function PortalConfigPopup({ setShowConfigPopup, handleConsoleOutput }: PortalConfigProps) {
   const [nextStepId, setNextStepId] = useState('geotabMyAdminLogin');
   const stepsConfig = [
     {
@@ -89,10 +93,10 @@ function PortalConfigPopup({ setShowConfigPopup }: { setShowConfigPopup: (show: 
 
   return (
     <div className="fixed top-0 left-0 w-screen h-screen flex justify-center items-center bg-[rgba(0,0,0,0.33)] z-[999]">
-      <div className="bg-white p-5 rounded w-[500px] min-h-[500px] max-h-[80vh] h-fit shadow-md">
+      <div className="bg-white p-5 rounded w-[600px] min-h-[700px] max-h-[80vh] shadow-md">
         <div className="flex">
           <p className="text-[28px] font-[600] m-0 p-0">Configuration Menu</p>
-          <button className="ml-auto" onClick={() => setShowConfigPopup(false)}><X /></button>
+          <button className="ml-auto hover:cursor-pointer" onClick={() => setShowConfigPopup(false)}><X /></button>
         </div>
         <div className="mb-6 text-center">
             {stepsConfig.map((step, index) => (
@@ -102,7 +106,7 @@ function PortalConfigPopup({ setShowConfigPopup }: { setShowConfigPopup: (show: 
               </span>
             ))}
         </div>
-        <div className="w-full max-h-[50vh] flex flex-col justify-start overflow-y-auto">
+        <div className="w-full h-[63vh] flex flex-col justify-start overflow-y-auto">
           <ActiveStepComponent
             data={formData}
             setData={setFormData}
@@ -110,6 +114,7 @@ function PortalConfigPopup({ setShowConfigPopup }: { setShowConfigPopup: (show: 
             onSubmit={handleSubmit}
             stepConfig={currentStepConfig}
             setNextStepId={setNextStepId}
+            handleConsoleOutput={handleConsoleOutput}
           />
         </div>
       </div>

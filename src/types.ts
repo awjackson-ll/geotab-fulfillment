@@ -30,7 +30,52 @@ export interface PendingOrder {
   [key: string]: any;
 }
 
+interface Account {
+  accountId: string;
+  id: number;
+}
+
+interface ShippingContact {
+  name: string;
+  email: string;
+  street1: string;
+  street2: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  telephone1: string;
+  telephone2: string;
+}
+
+interface Account {
+  accountId: string;
+  id: number;
+}
+
+interface ShippingContact {
+  name: string;
+  email: string;
+  street1: string;
+  street2: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  telephone1: string;
+  telephone2: string;
+}
+
 export interface Order {
+  orderHeaderId: number;
+  account: Account;
+  orderDate: string; // ISO date string
+  shipmentStatus: string;
+  comment: string;
+  shippingContact: ShippingContact;
+  resellerName: string;
+  resellerEmail: string;
+  purchaseOrderNumber: string;
+  shipmentReference: string;
+  validated: boolean;
   id: string;
   value: string;
   [key: string]: any;

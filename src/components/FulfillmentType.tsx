@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
-function FulfillmentType({ data, setData, onNavigate, stepConfig, setNextStepId }: any) {
+function FulfillmentType({ data, setData, onNavigate, stepConfig, setNextStepId, handleConsoleOutput }: any) {
   const [localData, setLocalData] = useState(data[stepConfig.id] || { fulfillmentType: '' });
 
   useEffect(() => {
@@ -27,12 +27,18 @@ function FulfillmentType({ data, setData, onNavigate, stepConfig, setNextStepId 
       <div className="w-full h-full mt-6 flex flex-row justify-around items-center text-[24px] font-[700] text-white">
         <div
           className="flex justify-center items-center relative w-48 h-48 rounded-[10px] bg-[url('/src/assets/blueSemi.jpg')] bg-cover bg-center cursor-pointer transition-all duration-300 ease-in-out hover:scale-110"
-          onClick={() => handleNext("selectGeotabPendingOrder")}>
+          onClick={() => {
+            handleNext("selectGeotabPendingOrder")
+            handleConsoleOutput(" Fullfillment Type: Geotab");
+          }}>
           <p className="absolute top-10">Geotab</p>
         </div>
         <div
           className="flex justify-center items-center relative w-48 h-48 rounded-[10px] bg-[url('/src/assets/americanFlag.jpg')] bg-cover bg-center cursor-pointer transition-all duration-300 ease-in-out hover:scale-110"
-          onClick={() => handleNext("selectEasyVote")}>
+          onClick={() => {
+            handleNext("selectEasyVote")
+            handleConsoleOutput(" Fullfillment Type: EasyVote");
+          }}>
           <p className="absolute top-10">EasyVote</p>
         </div>
       </div>

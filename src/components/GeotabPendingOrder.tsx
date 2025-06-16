@@ -1,42 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { myAdminApi } from '../services/geotabAPI';
-
-// Type definitions for the order data
-interface Account {
-  accountId: string;
-  id: number;
-}
-
-interface ShippingContact {
-  name: string;
-  email: string;
-  street1: string;
-  street2: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  telephone1: string;
-  telephone2: string;
-}
-
-export interface Order {
-  orderHeaderId: number;
-  account: Account;
-  orderDate: string; // ISO date string
-  shipmentStatus: string;
-  comment: string;
-  shippingContact: ShippingContact;
-  resellerName: string;
-  resellerEmail: string;
-  purchaseOrderNumber: string;
-  shipmentReference: string;
-  validated: boolean;
-  id: number;
-}
+import type { Order } from '../types';
 
 interface FormattedOrdersDisplayProps {
   orders: Order[];
-  handleNext: () => void;
+  handleNext: (order: Order) => void;
 }
 
 // Helper function to format date
@@ -65,7 +33,7 @@ export const FormattedOrdersDisplay: React.FC<FormattedOrdersDisplayProps> = ({ 
           <div
             key={order.orderHeaderId}
             className="pt-1 pb-1 pl-4 w-full h-fit cursor-pointer box-border border-1 border-solid border-[#E0E0E0] hover:bg-[#F0F2F7]"
-            onClick={() => handleNext()}
+            onClick={() => handleNext(order)}
           >
             <table>
               <tbody>
@@ -114,21 +82,21 @@ function GeotabPendingOrder({ data, setData, onNavigate, stepConfig }: any) {
   const [localData, setLocalData] = useState(data[stepConfig.id] || { name: '', email: '' });
   const [pendingOrders, setPendingOrders] = useState<Order[] | null>(null);
 
-  async function getPendingOrders() {
-    try {
-      const sessionId = localStorage.getItem("myAdminSessionId");
-      if (sessionId) {
-        const orders = await myAdminApi.getPendingOrders(sessionId);
-        setPendingOrders(orders);
-      } else {
-        console.error("Session ID not found.");
-        setPendingOrders([]); 
-      }
-    } catch (error) {
-      console.error("Error fetching pending orders:", error);
-      setPendingOrders([]); 
-    }
-  }
+  // async function getPendingOrders() {
+  //   try {
+  //     const sessionId = localStorage.getItem("myAdminSessionId");
+  //     if (sessionId) {
+  //       const orders = await myAdminApi.getPendingOrders(sessionId);
+  //       setPendingOrders(orders);
+  //     } else {
+  //       console.error("Session ID not found.");
+  //       setPendingOrders([]); 
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching pending orders:", error);
+  //     setPendingOrders([]); 
+  //   }
+  // }
 
   async function getAllOrders() {
     try {
@@ -155,10 +123,10 @@ function GeotabPendingOrder({ data, setData, onNavigate, stepConfig }: any) {
     getAllOrders();
   }, []);
 
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    setLocalData((prev: any) => ({ ...prev, [name]: value }));
-  };
+  // const handleChange = (e: any) => {
+  //   const { name, value } = e.target;
+  //   setLocalData((prev: any) => ({ ...prev, [name]: value }));
+  // };
 
   const handleNext = () => {
     if (!localData.name || !localData.email) { // Assuming these fields are still relevant from original component structure

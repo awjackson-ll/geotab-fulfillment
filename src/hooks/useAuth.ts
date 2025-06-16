@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import type { AuthState } from '../types';
 import { usePersistedState } from './usePersistedState';
 

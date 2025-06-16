@@ -2,39 +2,44 @@ import type { PendingOrder, Order } from '../types';
 
 const MYADMIN_API_URL = 'https://myadminapi.geotab.com/v2/MyAdminApi.ashx';
 const MYADMIN_SHIPPING_API_URL = 'https://cors-anywhere.herokuapp.com/https://myadmin.geotab.com/api/v3/shipping/partner';
-const API_KEY = "5a84129c-4a21-4891-a797-58c06606ec1a";
 // Figure out a way to get the authHeader passed to every API call instead of just the sessionId
 // const [authHeader, setAuthHeader] = useState(new Headers({"Auth-SessionId": sessionId}));
 
 export const myAdminApi = {
   // This has to be an XMLHttpRequest because the API requires a JSON-RPC request
   // All other requests can be done with fetch and async/await
-  authenticate: (username: string, password: string) => {
-    const authenticateParams = {
-      "id" : -1,
-      "method" : "Authenticate",
-      "params" : {
-          "username": username,
-          "password": password
-      }
-    };
-    const request = new XMLHttpRequest();
-    request.open("POST", MYADMIN_API_URL, true);
-    request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-    request.onreadystatechange = function () {
-      if (request.readyState === 4) {
-        if (request.status === 200) {
-          const json = JSON.parse(request.responseText);
-          if (json.result) {
-            localStorage.setItem("myAdminSessionId", json.result.sessionId);
-            console.log("Session ID set to: " + json.result.sessionId);
-          }
-        } else {
-          console.error("Failed to authenticate");
+  authenticate: (username: string, password: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const authenticateParams = {
+        "id" : -1,
+        "method" : "Authenticate",
+        "params" : {
+            "username": username,
+            "password": password
         }
-      }
-    };
-    request.send("JSON-RPC=" + encodeURIComponent(JSON.stringify(authenticateParams)));
+      };
+      const request = new XMLHttpRequest();
+      request.open("POST", MYADMIN_API_URL, true);
+      request.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+      request.onreadystatechange = function () {
+        if (request.readyState === 4) {
+          if (request.status === 200) {
+            const json = JSON.parse(request.responseText);
+            if (json.result) {
+              localStorage.setItem("myAdminSessionId", json.result.sessionId);
+              localStorage.setItem("myAdminSessionIdExpiration", Date.now().toString());
+              console.log("Session ID set to: " + json.result.sessionId);
+              resolve(json.result.sessionId);
+            } else {
+              reject(new Error("Authentication failed: No result in response"));
+            }
+          } else {
+            reject(new Error("Failed to authenticate: " + request.status));
+          }
+        }
+      };
+      request.send("JSON-RPC=" + encodeURIComponent(JSON.stringify(authenticateParams)));
+    });
   },
 
   getPendingOrders: async (sessionId: string): Promise<PendingOrder[]> => {

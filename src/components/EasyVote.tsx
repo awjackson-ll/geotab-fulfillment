@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 
 function EasyVote({ data, setData, onNavigate, stepConfig }: any) {
   const [localData, setLocalData] = useState(data[stepConfig.id] || { name: '', email: '' });
@@ -31,6 +31,8 @@ function EasyVote({ data, setData, onNavigate, stepConfig }: any) {
   return (
     <div>
       <h1>EasyVote</h1>
+      <button onClick={handleNext}>Next</button>
+      <button onClick={handleChange}>Change</button>
     </div>
   );
 }

@@ -225,9 +225,9 @@ export const apiService = {
       try {
         const data = await response.json();
         return data;
-      } catch (parseError) {
-        console.error('JSON parsing error:', parseError);
-        throw new Error(`Failed to parse event history response: ${parseError.message}`);
+      } catch (error) {
+        console.error('JSON parsing error:', error);
+        throw new Error(`Failed to parse event history response: ${error}`);
       }
     } catch (error) {
       // Enhance error message with more details

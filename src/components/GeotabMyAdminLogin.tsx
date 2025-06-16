@@ -1,18 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { myAdminApi } from '../services/geotabAPI';
 
-function GeotabMyAdminLogin({ data, setData, onNavigate, stepConfig }: any) {
-  const [localData, setLocalData] = useState(data[stepConfig.id] || { name: '', email: '' });
-  const [username, setUsername] = useState(import.meta.env.VITE_GEOTAB_SERVICE_ACCOUNT_EMAIL);
-  const [password, setPassword] = useState(import.meta.env.VITE_GEOTAB_SERVICE_ACCOUNT_PASSWORD);
+function GeotabMyAdminLogin({ setData, onNavigate, stepConfig, handleConsoleOutput }: any) {
+  const MILLI_IN_A_WEEK = 604800000;
+  const [localData, setLocalData] = useState({ username: 's', password: 's' });
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [isButtonDisabled, setIsButtonDisabled] = useState(true);
-  const [sessionId, setSessionId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (localStorage.getItem("myAdminSessionId")) {
+    // This logic isn't working currently, and new token is always requested
+    if (localStorage.getItem("myAdminSessionId") &&
+        localStorage.getItem("myAdminSessionIdExpiration") &&
+        (Date.now() - parseInt(localStorage.getItem("myAdminSessionIdExpiration") as string)) < MILLI_IN_A_WEEK) {
       try {
-        // myAdminApi.getPendingOrders(localStorage.getItem("myAdminSessionId") as string);
         if (stepConfig.nextStepId) {
+          handleConsoleOutput(" Using cached session ID");
           onNavigate(stepConfig.nextStepId);
         } else {
           // This could be a terminal step if no nextStepId is defined
@@ -26,23 +29,17 @@ function GeotabMyAdminLogin({ data, setData, onNavigate, stepConfig }: any) {
   }, []);
 
   useEffect(() => {
-    // Keep localData in sync if global data for this step changes (e.g., navigating back)
-    setLocalData(data[stepConfig.id] || { name: '', email: '' });
-  }, [data, stepConfig.id]);
+    console.log('Updated localData:', localData);
+  }, [localData]);
 
   useEffect(() => {
     // Enable the button only if the username field is not empty
-    setIsButtonDisabled(username.trim() === '');
-  }, [username]);
-
-  const handleChange = (e: any) => {
-    const { name, value } = e.target;
-    setLocalData((prev: any) => ({ ...prev, [name]: value }));
-  };
+    setIsButtonDisabled(username.trim() === '' || password.trim() === '');
+  }, [username, password]);
 
   const handleNext = () => {
-    if (!localData.name || !localData.email) {
-      alert("Please fill in all fields for Step 1.");
+    if (!localData.username || !localData.password) {
+      alert("Please fill in all fields for " + stepConfig.title);
       return;
     }
     setData((prevData: any) => ({ ...prevData, [stepConfig.id]: localData }));
@@ -56,38 +53,46 @@ function GeotabMyAdminLogin({ data, setData, onNavigate, stepConfig }: any) {
   };
 
   const handleEmailChange = (event: any) => {
+    console.log('Username changed to:', event.target.value);
     setUsername(event.target.value);
   };
 
   const handlePasswordChange = (event: any) => {
+    console.log('Password changed to:', event.target.value);
     setPassword(event.target.value);
   };
 
-  const handleSubmit = (event: any) => {
+  const handleSubmit = async (event: any) => {
     event.preventDefault();
-    myAdminApi.authenticate(username, password);
-    console.log('Username submitted:', username);
-    handleNext();
+    setLocalData({ username: username, password: password });
+    console.log(localData);
+    try {
+      console.log('Username submitted:', username);
+      handleConsoleOutput(' Username submitted: ', username);
+      console.log('Attempting to authenticate...');
+      handleConsoleOutput(' Attempting to authenticate...');
+      
+      await myAdminApi.authenticate(username, password);
+      
+      console.log('Authenticated successfully');
+      handleConsoleOutput(' Authenticated successfully');
+      handleNext();
+    } catch (error) {
+      console.error("Error authenticating: ", error);
+      handleConsoleOutput(' Error authenticating: ' + error);
+    }
   };
 
-
-
   return (
-    <div className="min-h-screen bg-slate-100 flex flex-col items-center justify-center font-sans">
-      {/* Header Section */}
-      <header className="absolute top-0 left-0 w-full p-6 md:p-10">
-        <h1 className="text-3xl md:text-4xl font-bold text-blue-600">myADMIN</h1>
-      </header>
-
-      {/* Login Form Section */}
+    <div className="h-full bg-[#F9FAFB] flex flex-col items-center justify-center font-roboto">
       <main className="w-full max-w-md p-8 space-y-8">
         <div className="text-center">
-          <h2 className="text-4xl font-semibold text-gray-800">Log In</h2>
+          <h2 className="text-4xl font-semibold text-gray-800">{stepConfig.title}</h2>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-6">
           <div>
-            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="username" className="block text-[16px] font-[400] text-[#1f2833] leading-[1.125] mb-2">
               Username (Email)
             </label>
             <input
@@ -98,12 +103,12 @@ function GeotabMyAdminLogin({ data, setData, onNavigate, stepConfig }: any) {
               required
               value={username}
               onChange={handleEmailChange}
-              className="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+              className="appearance-none rounded-md relative block w-full p-1.75 border border-[#DFE5EB] placeholder-[#949494] text-black hover:border-[#66788C] focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
               placeholder="Username"
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="password" className="block text-[16px] font-[400] text-[#1f2833] leading-[1.125] mb-2">
               Password
             </label>
             <input
@@ -114,7 +119,7 @@ function GeotabMyAdminLogin({ data, setData, onNavigate, stepConfig }: any) {
               required
               value={password}
               onChange={handlePasswordChange}
-              className="appearance-none rounded-md relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+              className="appearance-none rounded-md relative block w-full p-1.75 border border-[#DFE5EB] placeholder-[#949494] text-black hover:border-[#66788C] focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
               placeholder="Password"
             />
           </div>
@@ -123,10 +128,10 @@ function GeotabMyAdminLogin({ data, setData, onNavigate, stepConfig }: any) {
             <button
               type="submit"
               disabled={isButtonDisabled}
-              className={`group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white 
+              className={`group relative w-full flex justify-center px-3 py-2.5 border border-transparent text-sm font-medium rounded-md text-white 
                 ${isButtonDisabled 
-                  ? 'bg-blue-300 cursor-not-allowed' 
-                  : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                  ? 'bg-[#D8DEE9]' 
+                  : 'bg-[#0078D3] hover:bg-[#0078D3] hover:cursor-pointer focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
                 }`}
             >
               Next
