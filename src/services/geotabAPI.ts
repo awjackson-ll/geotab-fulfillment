@@ -42,9 +42,18 @@ export const myAdminApi = {
     });
   },
 
-  getPendingOrders: async (sessionId: string): Promise<PendingOrder[]> => {
+  getOrders: async ({
+    sessionId = '',
+    purchaseOrderNumber = '',
+    shipmentReference = '',
+    fromDate = new Date(),
+    toDate = new Date(),
+    status = '',
+    page = 0,
+    perPage = 0
+    }): Promise<Order[]> => {
     if (!sessionId) {
-      console.error("No session ID provided");
+      console.log("No session ID provided");
       return [];
     }
     
@@ -54,51 +63,31 @@ export const myAdminApi = {
       
       // Create the URL with query parameters
       const url = new URL(MYADMIN_SHIPPING_API_URL);
-      url.searchParams.append("status", "PendingFulfillment");
+      fromDate.setDate(fromDate.getDate() - 30);
+      const params = {
+        purchaseOrderNumber,
+        shipmentReference,
+        status,
+        fromDate: fromDate.toLocaleDateString('en-CA'),
+        toDate: toDate.toLocaleDateString('en-CA'),
+        page: page ? page.toString() : '',
+        perPage: perPage ? perPage.toString() : ''
+      };
+      
+      Object.entries(params).forEach(([key, value]) => {
+        if (value) {
+          url.searchParams.append(key, value);
+        } else {
+          console.log(`No value provided for parameter: ${key}`);
+        }
+      });
       
       const requestOptions: RequestInit = {
         method: "GET",
         headers: headers
       };
       
-      console.log("Fetching pending orders with URL:", url.toString());
-      console.log("Using session ID:", sessionId);
-      
-      const response = await fetch(url.toString(), requestOptions);
-      
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`API Error (${response.status}): ${errorText || response.statusText}`);
-      }
-      
-      const json = await response.json();
-      console.log("Pending orders response:", json);
-      return json;
-    } catch (error) {
-      console.error("Error getting pending orders:", error);
-      throw error;
-    }
-  },
-
-  getAllOrders: async (sessionId: string): Promise<Order[]> => {
-    if (!sessionId) {
-      console.error("No session ID provided");
-      return [];
-    }
-    
-    try {
-      const headers = new Headers();
-      headers.append("Auth-SessionId", sessionId);
-      
-      // Create the URL with query parameters
-      const url = new URL(MYADMIN_SHIPPING_API_URL);
-      
-      const requestOptions: RequestInit = {
-        method: "GET",
-        headers: headers
-      };
-      
-      console.log("Fetching pending orders with URL:", url.toString());
+      console.log("Fetching orders with URL:", url.toString());
       console.log("Using session ID:", sessionId);
       
       const response = await fetch(url.toString(), requestOptions);
