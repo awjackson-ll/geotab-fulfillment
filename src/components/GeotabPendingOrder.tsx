@@ -3,24 +3,24 @@ import { myAdminApi } from '../services/geotabAPI';
 import type { Order } from '../types';
 import { ArrowDown10, ArrowUp01, CalendarArrowDown, CalendarArrowUp } from 'lucide-react';
 
-
 function GeotabPendingOrder({ data, setData, onNavigate, stepConfig }: any) {
   const [allOrders, setAllOrders] = useState<Order[]>([]);
   const [displayedOrders, setDisplayedOrders] = useState<Order[]>([]);
   const [sortOptionsVisible, setSortOptionsVisible] = useState(false);
+  const [filterOptionsVisible, setFilterOptionsVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  
+
   // Sort state
   const [sortConfig, setSortConfig] = useState<{key: string, direction: 'ascending' | 'descending'}>({
     key: 'orderDate',
     direction: 'descending'
   });
-  
+
   // Filter states
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
-  
+
   // Search state
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -163,102 +163,111 @@ function GeotabPendingOrder({ data, setData, onNavigate, stepConfig }: any) {
         <p>Loading orders...</p>
       ) : (
         <>
-          <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <input
-                type="text"
-                placeholder="Search all fields..."
-                className="w-full p-2 border rounded"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            
-            <div>
-              <select 
-                className="w-full p-2 border rounded"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-              >
-                <option value="">All Statuses</option>
-                {statusOptions.map(status => (
-                  <option key={status} value={status}>{status}</option>
-                ))}
-              </select>
-            </div>
-            
-            <div className="flex space-x-2">
-              <input
-                type="date"
-                className="flex-1 p-2 border rounded"
-                placeholder="Start Date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-              />
-              <input
-                type="date"
-                className="flex-1 p-2 border rounded"
-                placeholder="End Date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-              />
-            </div>
-          </div>
-
-          
           <div className="flex flex-col w-full font-[Roboto]">
             <div className="text-[14px] font-[600] text-white m-0 px-4 py-0 w-full h-[48px] bg-[#3C5063] flex flex-row items-center leading-[1rem] tracking-normal flex-grow shadow-sm sticky top-9">
               <p className="m-0 p-0">Orders</p>
-              {sortOptionsVisible ? (
-                <div className="flex flex-column flex-wrap ml-auto rounded h-fit max-w-[100px]">
-                  <button 
-                    className={`px-3 py-1 rounded ${sortConfig.key === 'orderDate' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                    onClick={() => {handleSort('orderDate'); setSortOptionsVisible(false);}}
-                  >
-                    Date <CalendarArrowUp />
-                  </button>
-                  <button 
-                    className={`px-3 py-1 rounded ${sortConfig.key === 'orderDate' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                    onClick={() => {handleSort('orderDate'); setSortOptionsVisible(false);}}
-                  >
-                    Date <CalendarArrowDown />
-                  </button>
-                  <button 
-                    className={`px-3 py-1 rounded ${sortConfig.key === 'purchaseOrderNumber' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                    onClick={() => {handleSort('purchaseOrderNumber'); setSortOptionsVisible(false);}}
-                  >
-                    PO # <ArrowUp01 />
-                  </button>
-                  <button 
-                    className={`px-3 py-1 rounded ${sortConfig.key === 'purchaseOrderNumber' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                    onClick={() => {handleSort('purchaseOrderNumber'); setSortOptionsVisible(false);}}
-                  >
-                    PO # <ArrowDown10 />
-                  </button>
-                  <button 
-                    className={`px-3 py-1 rounded ${sortConfig.key === 'shipmentReference' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                    onClick={() => {handleSort('shipmentReference'); setSortOptionsVisible(false);}}
-                  >
-                    SH # <ArrowUp01 />
-                  </button>
-                  <button 
-                    className={`px-3 py-1 rounded ${sortConfig.key === 'shipmentReference' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                    onClick={() => {handleSort('shipmentReference'); setSortOptionsVisible(false);}}
-                  >
-                    SH # <ArrowDown10 />
-                  </button>
-                </div>
-              ) : (
-                <div 
-                  className="flex flex-row items-center ml-auto justify-between bg-white px-2 py-1 rounded border-1 border-solid border-[#E0E0E0] hover:border-black hover:inset-shadow-[0px_0px_1px_1px_rgba(0,0,0,1)] transition ease-in-out duration-50 hover:cursor-pointer"
-                  onClick={() => handleSortClick()}
+
+              {/* Search Bar */}
+              <div className="relative ml-4">
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="bg-white px-3 py-1.5 rounded-md border border-gray-300 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                />
+              </div>
+
+              {/* Filter Dropdown */}
+              <div className="relative ml-4">
+                <button
+                  onClick={() => setFilterOptionsVisible(!filterOptionsVisible)}
+                  className="flex flex-row items-center justify-between bg-white px-3 py-1.5 rounded-md border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
                 >
-                  <svg className="stroke-[#3C5063] stroke-1" xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" focusable="false" aria-hidden="true">
+                  <span className="m-0 p-0 text-[#3C5063]">Filter By</span>
+                </button>
+                {filterOptionsVisible && (
+                  <div className="absolute right-0 mt-2 w-64 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10 p-4 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Status</label>
+                      <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value)}
+                        className="mt-1 text-[#3C5063] block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                      >
+                        <option value="">All</option>
+                        {statusOptions.map(status => (
+                          <option key={status} value={status}>{status}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Start Date</label>
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="mt-1 block text-[#3C5063] w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">End Date</label>
+                      <input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="mt-1 block text-[#3C5063] w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Sort Dropdown */}
+              <div className="relative ml-auto">
+                <button
+                  onClick={() => setSortOptionsVisible(!sortOptionsVisible)}
+                  className="flex flex-row items-center justify-between bg-white px-3 py-1.5 rounded-md border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
+                >
+                  <svg className="stroke-[#3C5063]" xmlns="http://www.w3.org/2000/svg" height="20" viewBox="0 0 24 24" width="20" focusable="false" aria-hidden="true">
                     <path d="M21 6H3V5h18v1zm-6 5H3v1h12v-1zm-6 6H3v1h6v-1z"></path>
                   </svg>
-                  <p className="m-0 p-0 pl-2 text-[#3C5063]">Sort By</p>
-                </div>
-              )}
+                  <span className="m-0 p-0 pl-2 text-[#3C5063]">Sort By</span>
+                </button>
+                {sortOptionsVisible && (
+                  <div className="absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                    <div className="py-1" role="menu" aria-orientation="vertical" aria-labelledby="options-menu">
+                      <button
+                        className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between ${sortConfig.key === 'orderDate' ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} hover:bg-gray-100 hover:text-gray-900`}
+                        onClick={() => { handleSort('orderDate'); setSortOptionsVisible(false); }}
+                      >
+                        <span>Date</span>
+                        {sortConfig.key === 'orderDate' && (
+                          sortConfig.direction === 'ascending' ? <CalendarArrowUp size={16} /> : <CalendarArrowDown size={16} />
+                        )}
+                      </button>
+                      <button
+                        className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between ${sortConfig.key === 'purchaseOrderNumber' ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} hover:bg-gray-100 hover:text-gray-900`}
+                        onClick={() => { handleSort('purchaseOrderNumber'); setSortOptionsVisible(false); }}
+                      >
+                        <span>PO Number</span>
+                        {sortConfig.key === 'purchaseOrderNumber' && (
+                          sortConfig.direction === 'ascending' ? <ArrowUp01 size={16} /> : <ArrowDown10 size={16} />
+                        )}
+                      </button>
+                      <button
+                        className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between ${sortConfig.key === 'shipmentReference' ? 'bg-gray-100 text-gray-900' : 'text-gray-700'} hover:bg-gray-100 hover:text-gray-900`}
+                        onClick={() => { handleSort('shipmentReference'); setSortOptionsVisible(false); }}
+                      >
+                        <span>Shipment Reference</span>
+                        {sortConfig.key === 'shipmentReference' && (
+                          sortConfig.direction === 'ascending' ? <ArrowUp01 size={16} /> : <ArrowDown10 size={16} />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             <div>
               {displayedOrders.map((order) => (

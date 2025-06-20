@@ -5,7 +5,7 @@ import GeotabPendingOrder from './GeotabPendingOrder';
 import EasyVote from './EasyVote';
 import ReviewSubmit from './ReviewSubmit';
 import GeotabMyAdminLogin from './GeotabMyAdminLogin';
-
+import AirFinderSetup from './AirFinderSetup/AirFinderSetup';
 interface PortalConfigProps {
   setShowConfigPopup: (show: boolean) => void;
   handleConsoleOutput: (input: string) => void;
@@ -32,8 +32,15 @@ function PortalConfigPopup({ setShowConfigPopup, handleConsoleOutput }: PortalCo
       id: 'selectGeotabPendingOrder',
       title: 'Select Geotab Pending Order',
       component: GeotabPendingOrder,
-      nextStepId: 'reviewSubmitGeotab',
+      nextStepId: 'airFinderSetup',
       prevStepId: 'fulfillmentType',
+    },
+    {
+      id: 'airFinderSetup',
+      title: 'AirFinder Setup',
+      component: AirFinderSetup,
+      nextStepId: 'reviewSubmitGeotab',
+      prevStepId: 'selectGeotabPendingOrder',
     },
     {
       id: 'selectEasyVote',
