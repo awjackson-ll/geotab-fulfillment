@@ -1,4 +1,4 @@
-import type { PendingOrder, Order } from '../types';
+import type {Order, LineItem } from '../types';
 
 const MYADMIN_API_URL = 'https://myadminapi.geotab.com/v2/MyAdminApi.ashx';
 const MYADMIN_SHIPPING_API_URL = 'https://cors-anywhere.herokuapp.com/https://myadmin.geotab.com/api/v3/shipping/partner';
@@ -104,7 +104,44 @@ export const myAdminApi = {
       console.error("Error getting orders:", error);
       throw error;
     }
-  }
+  },
+
+  getLineItems: async ({
+    sessionId = '',
+    id = 0,
+    }): Promise<LineItem[]> => {
+    if (!sessionId) {
+      console.log("No session ID provided");
+      return [];
+    }
+    
+    try {
+      const headers = new Headers();
+      headers.append("Auth-SessionId", sessionId);
+      
+      // Create the URL with query parameters
+      const url = new URL(MYADMIN_SHIPPING_API_URL + `/${id}/items`);
+      
+      const requestOptions: RequestInit = {
+        method: "GET",
+        headers: headers
+      };
+      
+      const response = await fetch(url.toString(), requestOptions);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`API Error (${response.status}): ${errorText || response.statusText}`);
+      }
+      
+      const json = await response.json();
+      console.log("Line items response:", json);
+      return json;
+    } catch (error) {
+      console.error("Error getting line items:", error);
+      throw error;
+    }
+  } 
 
   // fetchOrganizations: async (authHeader: string): Promise<Organization[]> => {
   //   const response = await fetch(`${API_BASE_URL}/networkAsset/airfinder/organizations`, {

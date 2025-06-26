@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import * as XLSX from 'xlsx';
 
 interface AssetSetupFormProps {
   data: any;
@@ -7,11 +8,14 @@ interface AssetSetupFormProps {
   onCancel: () => void;
 }
 
-type AssetView = 'selection' | 'import' | 'add';
+type AssetView = 'selection' | 'import' | 'add' | 'automatic';
 
 function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProps) {
   const [currentView, setCurrentView] = useState<AssetView>('selection');
-  const [formData, setFormData] = useState({
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [formData, setFormData] = useState([{
     assetName: '',
     macAddress: '',
     category: '',
@@ -19,8 +23,8 @@ function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProp
     field1: '',
     field2: '',
     addAnother: false,
-    ...data
-  });
+    // ...data
+  }]);
 
   const handleChange = (e: any) => {
     const { name, value, type, checked } = e.target;
@@ -30,18 +34,202 @@ function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProp
     }));
   };
 
-  const handleFinish = () => {
-    if (!formData.assetName || !formData.macAddress) {
-      alert("Please fill in all required fields.");
-      return;
+  const handleImportAssets = () => {
+    if (selectedFile) {
+      // Process the uploaded file here
+      console.log('Processing file:', selectedFile.name);
+      // You can add XLSX parsing logic here
+      onFinish(formData);
+    } else {
+      alert("Please select a file to import");
     }
-    onFinish(formData);
   };
 
-  const handleImportAssets = () => {
-    // For now, just show a placeholder - you can implement file upload later
-    alert("Import Assets functionality to be implemented");
-    onFinish({ importMode: true });
+  const isMACAddress = (value: string): boolean => {
+    if (!value || typeof value !== 'string') return false;
+    
+    const macPatterns = [
+      /^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$/, // 00:1A:2B:3C:4D:5E or 00-1A-2B-3C-4D-5E
+      /^([0-9A-Fa-f]{12})$/, // 001A2B3C4D5E
+      /^([0-9A-Fa-f]{4}\.){2}([0-9A-Fa-f]{4})$/ // 001A.2B3C.4D5E
+    ];
+    
+    return macPatterns.some(pattern => pattern.test(value.toString().trim()));
+  };
+
+  const isProductCode = (value: string): boolean => {
+    if (!value || typeof value !== 'string') return false;
+    
+    // Placeholder product codes - update this array with actual Link Labs product codes
+    const productCodes = [
+      /^[a-zA-Z0-9]*ATK02[a-zA-Z0-9]*$/,
+      /^[a-zA-Z0-9]*ATK42[a-zA-Z0-9]*$/,
+      /^[a-zA-Z0-9]*RTK02[a-zA-Z0-9]*$/,
+      /^[a-zA-Z0-9]*E9[a-zA-Z0-9]*$/,
+      /^[a-zA-Z0-9]*E7[a-zA-Z0-9]*$/,
+      /^[a-zA-Z0-9]*E8[a-zA-Z0-9]*$/,
+      /^[a-zA-Z0-9]*C10[a-zA-Z0-9]*$/,
+      /^[a-zA-Z0-9]*S1[a-zA-Z0-9]*$/,
+      /^[a-zA-Z0-9]*S4[a-zA-Z0-9]*$/,
+      /^[a-zA-Z0-9]*V[a-zA-Z0-9]*$/,
+      // Add more product codes here when provided
+    ];
+    
+    const valueStr = value.toString().trim().toUpperCase();
+    return productCodes.some(code => valueStr.includes(code.toUpperCase()));
+  };
+
+  const parseXLSXFile = async (file: File): Promise<{ assets: Array<{macAddress: string, productCode: string, rowIndex: number}>, allData: any[][] }> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target?.result as ArrayBuffer);
+          const workbook = XLSX.read(data, { type: 'array' });
+          
+          // Get the first worksheet
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          
+          // Convert to JSON array
+          const jsonData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          
+          console.log('Parsed XLSX data:', jsonData);
+          
+          const assets: Array<{macAddress: string, productCode: string, rowIndex: number}> = [];
+          
+          // Analyze data row by row to find MAC addresses and product codes
+          jsonData.forEach((row, rowIndex) => {
+            if (Array.isArray(row)) {
+              let macAddress = '';
+              let productCode = '';
+              
+              // Look for MAC address and product code in the same row
+              row.forEach((cell) => {
+                if (cell) {
+                  const cellValue = cell.toString().trim();
+                  
+                  // Check for MAC address
+                  if (isMACAddress(cellValue) && !macAddress) {
+                    macAddress = cellValue;
+                  }
+                  
+                  // Check for product code
+                  if (isProductCode(cellValue) && !productCode) {
+                    productCode = cellValue;
+                  }
+                }
+              });
+              
+              // If we found a MAC address in this row, create an asset object
+              if (macAddress) {
+                assets.push({
+                  macAddress,
+                  productCode: productCode || '', // Use empty string if no product code found in same row
+                  rowIndex: rowIndex + 1
+                });
+                console.log(`Found asset at row ${rowIndex + 1}: MAC=${macAddress}, Product=${productCode || 'Not found'}`);
+              }
+            }
+          });
+          
+          resolve({ assets, allData: jsonData });
+        } catch (error) {
+          console.error('Error parsing XLSX file:', error);
+          reject(error);
+        }
+      };
+      
+      reader.onerror = () => {
+        reject(new Error('Failed to read file'));
+      };
+      
+      reader.readAsArrayBuffer(file);
+    });
+  };
+
+  const mapAssetsToFormData = (assets: Array<{macAddress: string, productCode: string, rowIndex: number}>) => {
+    return assets.map((asset, index) => ({
+      assetName: '',
+      macAddress: asset.macAddress,
+      category: '',
+      group: '',
+      field1: '',
+      field2: asset.productCode, // Map product code to field2
+      addAnother: index < assets.length - 1, // Set addAnother to true for all but the last entry
+    }));
+  };
+
+  const handleFileSelect = async (file: File) => {
+    // Validate file type (XLSX)
+    if (file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' || file.name.endsWith('.xlsx')) {
+      setSelectedFile(file);
+      console.log('File selected:', file.name);
+      
+      try {
+        // Parse the XLSX file
+        const parseResult = await parseXLSXFile(file);
+        console.log('Parse result:', parseResult);
+        
+        // Update formData with parsed assets array
+        if (parseResult.assets.length > 0) {
+          // Map each asset to a formData entry
+          const mappedFormData = mapAssetsToFormData(parseResult.assets);
+          
+          setFormData(mappedFormData);
+          
+          // Log what was found and mapped
+          console.log(`Found ${parseResult.assets.length} assets in XLSX file:`);
+          parseResult.assets.forEach((asset, index) => {
+            console.log(`Asset ${index + 1}: MAC=${asset.macAddress}, Product=${asset.productCode}, Row=${asset.rowIndex}`);
+          });
+          
+          console.log('Mapped form data:', mappedFormData);
+          
+        } else {
+          console.log('No MAC addresses found in the XLSX file');
+          alert('No MAC addresses detected in the file. Please verify the file content contains MAC addresses.');
+        }
+        
+      } catch (error) {
+        console.error('Error processing XLSX file:', error);
+        alert('Error processing XLSX file. Please ensure it is a valid Excel file.');
+      }
+    } else {
+      alert('Please select an XLSX file');
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      handleFileSelect(file);
+    }
+  };
+
+  const handleBrowseClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragOver(false);
+    
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      handleFileSelect(files[0]);
+    }
   };
 
   const handleAddCategory = () => {
@@ -52,7 +240,6 @@ function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProp
     alert("Add Group functionality to be implemented");
   };
 
-  // Initial selection view
   if (currentView === 'selection') {
     return (
       <div className="max-w-lg mx-auto bg-gray-50 min-h-screen">
@@ -77,13 +264,6 @@ function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProp
             >
               Add Asset
             </button>
-
-            <button
-              onClick={() => setCurrentView('add')}
-              className="px-8 py-4 bg-gray-200 text-gray-700 border-none rounded text-base cursor-pointer font-medium hover:bg-gray-300 transition-colors"
-            >
-              Automatically Add Assets
-            </button>
           </div>
 
           {/* Navigation buttons */}
@@ -107,7 +287,6 @@ function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProp
     );
   }
 
-  // Import Assets view
   if (currentView === 'import') {
     return (
       <div className="max-w-4xl mx-auto bg-gray-50 min-h-screen">
@@ -124,8 +303,26 @@ function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProp
 
         {/* Import Content */}
         <div className="p-8">
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx"
+            onChange={handleFileInputChange}
+            style={{ display: 'none' }}
+          />
+          
           {/* Drag and Drop Area */}
-          <div className="border-2 border-dashed border-gray-400 rounded-lg p-16 mb-8 text-center bg-white">
+          <div 
+            className={`border-2 border-dashed rounded-lg p-16 mb-8 text-center bg-white transition-colors ${
+              isDragOver 
+                ? 'border-[#46A0BF] bg-[#46A0BF]/5' 
+                : 'border-gray-400'
+            }`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
             <div className="flex flex-col items-center gap-4">
               {/* Upload Icon */}
               <svg className="w-16 h-16 text-[#46A0BF]" fill="currentColor" viewBox="0 0 24 24">
@@ -133,25 +330,47 @@ function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProp
                 <path d="M12,11L16,15H13V19H11V15H8L12,11Z" />
               </svg>
               
-              <div className="text-gray-600">
-                <span>Drag and drop CSV file or</span>
-              </div>
-              
-              <button className="px-6 py-2 border-2 border-[#46A0BF] text-[#46A0BF] bg-transparent rounded hover:bg-[#46A0BF]/10 transition-colors font-medium">
-                Browse
-              </button>
+              {selectedFile ? (
+                <div className="text-center">
+                  <div className="text-green-600 font-medium mb-2">
+                    File Selected: {selectedFile.name}
+                  </div>
+                  <div className="text-gray-500 text-sm">
+                    Size: {(selectedFile.size / 1024).toFixed(1)} KB
+                  </div>
+                  <button
+                    onClick={() => setSelectedFile(null)}
+                    className="mt-2 text-red-500 hover:text-red-700 text-sm underline"
+                  >
+                    Remove file
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="text-gray-600">
+                    <span>Drag and drop XLSX file or</span>
+                  </div>
+                  
+                  <button 
+                    onClick={handleBrowseClick}
+                    className="px-6 py-2 border-2 border-[#46A0BF] text-[#46A0BF] bg-transparent rounded hover:bg-[#46A0BF]/10 transition-colors font-medium"
+                  >
+                    Browse
+                  </button>
+                </>
+              )}
             </div>
           </div>
 
           {/* Bottom Section */}
           <div className="flex justify-between items-center">
-            {/* Left side - CSV Template */}
+            {/* Left side - XLSX Template */}
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-[#46A0BF] rounded-full flex items-center justify-center">
                 <span className="text-white text-lg font-bold">!</span>
               </div>
               <button className="px-6 py-2 border-2 border-[#46A0BF] text-[#46A0BF] bg-transparent rounded hover:bg-[#46A0BF]/10 transition-colors font-medium">
-                Download CSV Template
+                Download XLSX Template
               </button>
             </div>
 
@@ -177,7 +396,6 @@ function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProp
     );
   }
 
-  // Add Asset form view
   return (
     <div className="max-w-lg mx-auto bg-gray-50 min-h-screen">
       {/* Header */}
@@ -192,7 +410,7 @@ function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProp
           <input
             type="text"
             name="assetName"
-            value={formData.assetName}
+            value={formData[0].assetName}
             onChange={handleChange}
             placeholder="Asset Name *"
             className="w-full p-3 border border-gray-300 rounded text-base bg-white placeholder-gray-500"
@@ -204,7 +422,7 @@ function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProp
           <input
             type="text"
             name="macAddress"
-            value={formData.macAddress}
+            value={formData[0].macAddress}
             onChange={handleChange}
             placeholder="MAC Address *"
             className="w-full p-3 border border-gray-300 rounded text-base bg-white placeholder-gray-500"
@@ -216,10 +434,10 @@ function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProp
           <div className="flex-1 relative">
             <select
               name="category"
-              value={formData.category}
+              value={formData[0].category}
               onChange={handleChange}
               className={`w-full p-3 border border-gray-300 rounded text-base bg-white ${
-                formData.category ? 'text-black' : 'text-gray-500'
+                formData[0].category ? 'text-black' : 'text-gray-500'
               }`}
             >
               <option value="" disabled>Category</option>
@@ -240,10 +458,10 @@ function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProp
           <div className="flex-1 relative">
             <select
               name="group"
-              value={formData.group}
+              value={formData[0].group}
               onChange={handleChange}
               className={`w-full p-3 border border-gray-300 rounded text-base bg-white ${
-                formData.group ? 'text-black' : 'text-gray-500'
+                formData[0].group ? 'text-black' : 'text-gray-500'
               }`}
             >
               <option value="" disabled>Group</option>
@@ -267,7 +485,7 @@ function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProp
           <input
             type="text"
             name="field1"
-            value={formData.field1}
+            value={formData[0].field1}
             onChange={handleChange}
             placeholder="Field 1"
             className="flex-1 p-3 border border-gray-300 rounded text-base bg-white placeholder-gray-500"
@@ -276,7 +494,7 @@ function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProp
           <input
             type="text"
             name="field2"
-            value={formData.field2}
+            value={formData[0].field2}
             onChange={handleChange}
             placeholder="Field 2"
             className="flex-1 p-3 border border-gray-300 rounded text-base bg-white placeholder-gray-500"
@@ -289,7 +507,7 @@ function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProp
             <input
               type="checkbox"
               name="addAnother"
-              checked={formData.addAnother}
+              checked={formData[0].addAnother}
               onChange={handleChange}
               className="w-4 h-4 text-[#46A0BF] border-2 border-gray-300 rounded focus:ring-[#46A0BF] focus:ring-2"
             />
@@ -307,7 +525,7 @@ function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProp
           </button>
           
           <button
-            onClick={handleFinish}
+            onClick={() => onFinish(formData)}
             className="px-6 py-3 bg-[#46A0BF] text-white border-none rounded text-base cursor-pointer font-medium hover:bg-[#46A0BF]/80 transition-colors"
           >
             Add

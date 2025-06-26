@@ -10,7 +10,7 @@ function AirFinderSetup({ data, setData, onNavigate, stepConfig }: any) {
   const [formData, setFormData] = useState({
     organization: {},
     site: {},
-    asset: {},
+    assets: [{}],
     ...data[stepConfig.id]
   });
 
@@ -19,25 +19,25 @@ function AirFinderSetup({ data, setData, onNavigate, stepConfig }: any) {
     setFormData({
       organization: {},
       site: {},
-      asset: {},
+      assets: [{}],
       ...data[stepConfig.id]
     });
   }, [data, stepConfig.id]);
 
   const handleOrgNext = (orgData: any) => {
-    setFormData(prev => ({ ...prev, organization: orgData }));
+    setFormData((prev: any) => ({ ...prev, organization: orgData }));
     setCurrentStep('site');
   };
 
   const handleSiteNext = (siteData: any) => {
-    setFormData(prev => ({ ...prev, site: siteData }));
+    setFormData((prev: any) => ({ ...prev, site: siteData }));
     setCurrentStep('asset');
   };
 
   const handleAssetFinish = (assetData: any) => {
     const completedData = { 
       ...formData, 
-      asset: assetData 
+      assets: assetData 
     };
     
     // Save to global data
@@ -67,7 +67,7 @@ function AirFinderSetup({ data, setData, onNavigate, stepConfig }: any) {
     setFormData({
       organization: {},
       site: {},
-      asset: {}
+      assets: [{}]
     });
     setCurrentStep('organization');
     
@@ -101,7 +101,7 @@ function AirFinderSetup({ data, setData, onNavigate, stepConfig }: any) {
     case 'asset':
       return (
         <AssetSetupForm
-          data={formData.asset}
+          data={formData.assets}
           onFinish={handleAssetFinish}
           onBack={handleAssetBack}
           onCancel={handleCancel}

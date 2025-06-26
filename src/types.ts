@@ -81,6 +81,19 @@ export interface Order {
   [key: string]: any;
 }
 
+export interface LineItem {
+  shippingHeaderPartnerId: number,
+  productCode: string,
+  requiresSerialNumber: boolean,
+  requiresSimNumber: boolean,
+  requiresImei: boolean,
+  serialNumber: string,
+  simNumber?: string,
+  imei?: string,
+  attribute?: string,
+  id: number
+}
+
 export interface TagEvent {
   uuid: string;
   time: string;
