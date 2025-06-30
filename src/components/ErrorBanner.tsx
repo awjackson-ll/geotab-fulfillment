@@ -13,7 +13,7 @@ function ErrorBanner({ message, className = '' }: ErrorBannerProps) {
     if (message) {
       setIsVisible(true);
       // Auto-dismiss after 5 seconds
-      const timer = setTimeout(() => setIsVisible(false), 5000);
+      const timer = setTimeout(() => setIsVisible(false), 7500);
       return () => clearTimeout(timer);
     }
   }, [message]);

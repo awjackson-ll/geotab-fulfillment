@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { airfinderAPI } from '../../services/airfinderAPI';
+import ErrorBanner from '../ErrorBanner';
 
 interface OrgSetupFormProps {
   data: any;
@@ -8,48 +10,89 @@ interface OrgSetupFormProps {
 
 function OrgSetupForm({ data, onNext, onCancel }: OrgSetupFormProps) {
   const [formData, setFormData] = useState({
-    organization: '',
-    address: '',
+    name: '',
+    address1: '',
     address2: '',
-    country: '',
-    state: '',
+    country: 0,
+    state: 0,
     city: '',
-    postalCode: '',
-    contactFullName: '',
-    email: '',
-    phoneNumber: '',
+    zipcode: '',
+    primaryContact: '',
+    primaryEmail: '',
+    primaryPhone: '',
+    techContact: '',
+    techEmail: '',
+    techPhone: '',
+    properties: {
+      isOrgCustomReportsEnable: false,
+      dashboardPage: ""
+    },
     ...data
   });
 
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
   const handleChange = (e: any) => {
     const { name, value } = e.target;
-    setFormData((prev: any) => ({ ...prev, [name]: value }));
+    
+    // Parse country and state as numbers to maintain numeric type
+    let processedValue = value;
+    if (name === 'country' || name === 'state') {
+      processedValue = value === '' ? 0 : parseInt(value, 10);
+    }
+    
+    setFormData((prev: any) => ({ ...prev, [name]: processedValue }));
   };
 
   const handleCancel = () => {
     setFormData({
-      organization: '',
-      address: '',
+      name: '',
+      address1: '',
       address2: '',
-      country: '',
-      state: '',
+      country: 0,
+      state: 0,
       city: '',
-      postalCode: '',
-      contactFullName: '',
-      email: '',
-      phoneNumber: ''
-    });
+      zipcode: '',
+      primaryContact: '',
+      primaryEmail: '',
+      primaryPhone: '',
+      techContact: '',
+      techEmail: '',
+      techPhone: '',
+      properties: {
+        isOrgCustomReportsEnable: false,
+        dashboardPage: ""
+    }});
     if (onCancel) onCancel();
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    // Clear any previous error messages
+    setErrorMessage('');
+    
     // Validate required fields
-    if (!formData.organization || !formData.address || !formData.contactFullName || !formData.email) {
+    if (!formData.name || !formData.address1 || !formData.primaryContact || !formData.primaryEmail || !formData.primaryPhone) {
       alert("Please fill in all required fields.");
       return;
     }
     
-    onNext(formData);
+    const authString = localStorage.getItem("auth");
+    const auth = authString ? JSON.parse(authString) : null;
+    
+    try {
+      const response = await airfinderAPI.createOrg(auth?.token, JSON.stringify(formData));
+      
+      // Check if response has an error message
+      if (response.message) {
+        setErrorMessage(response.message);
+        return; // Don't proceed to next step
+      }
+      
+      // Success case
+      onNext(formData);
+    } catch (error) {
+      console.error("API Error:", error);
+    }
   };
 
   return (
@@ -61,12 +104,15 @@ function OrgSetupForm({ data, onNext, onCancel }: OrgSetupFormProps) {
 
       {/* Form Content */}
       <div className="p-5">
+        {/* Error Banner */}
+        {errorMessage && <ErrorBanner message={errorMessage} className='fixed bottom-4 right-4 z-50'/>}
+
         {/* Organization */}
         <div className="mb-4">
           <input
             type="text"
-            name="organization"
-            value={formData.organization}
+            name="name"
+            value={formData.name}
             onChange={handleChange}
             placeholder="Organization"
             className="w-full p-3 border border-gray-300 rounded text-base bg-white"
@@ -77,8 +123,8 @@ function OrgSetupForm({ data, onNext, onCancel }: OrgSetupFormProps) {
         <div className="mb-4">
           <input
             type="text"
-            name="address"
-            value={formData.address}
+            name="address1"
+            value={formData.address1}
             onChange={handleChange}
             placeholder="Address"
             className="w-full p-3 border border-gray-300 rounded text-base bg-white"
@@ -99,35 +145,27 @@ function OrgSetupForm({ data, onNext, onCancel }: OrgSetupFormProps) {
 
         {/* Country and State Row */}
         <div className="flex gap-2.5 mb-4">
-          <select
+          <input 
+            type="number"
             name="country"
+            placeholder="Country"
             value={formData.country}
             onChange={handleChange}
             className={`flex-1 p-3 border border-gray-300 rounded text-base bg-white ${
               formData.country ? 'text-black' : 'text-gray-400'
             }`}
-          >
-            <option value="" disabled>Country</option>
-            <option value="US">United States</option>
-            <option value="CA">Canada</option>
-            <option value="MX">Mexico</option>
-          </select>
+          />
 
-          <select
+          <input
+            type="number"
             name="state"
+            placeholder="State"
             value={formData.state}
             onChange={handleChange}
             className={`flex-1 p-3 border border-gray-300 rounded text-base bg-white ${
               formData.state ? 'text-black' : 'text-gray-400'
             }`}
-          >
-            <option value="" disabled>State</option>
-            <option value="AL">Alabama</option>
-            <option value="CA">California</option>
-            <option value="FL">Florida</option>
-            <option value="NY">New York</option>
-            <option value="TX">Texas</option>
-          </select>
+          />
         </div>
 
         {/* City and Postal Code Row */}
@@ -143,8 +181,8 @@ function OrgSetupForm({ data, onNext, onCancel }: OrgSetupFormProps) {
 
           <input
             type="text"
-            name="postalCode"
-            value={formData.postalCode}
+            name="zipcode"
+            value={formData.zipcode}
             onChange={handleChange}
             placeholder="Postal Code"
             className="flex-1 p-3 border border-gray-300 rounded text-base bg-white"
@@ -160,10 +198,10 @@ function OrgSetupForm({ data, onNext, onCancel }: OrgSetupFormProps) {
         <div className="mb-4">
           <input
             type="text"
-            name="contactFullName"
-            value={formData.contactFullName}
+            name="primaryContact"
+            value={formData.primaryContact}
             onChange={handleChange}
-            placeholder="Contact Full Name"
+            placeholder="Primary Contact Full Name"
             className="w-full p-3 border border-gray-300 rounded text-base bg-white"
           />
         </div>
@@ -172,10 +210,10 @@ function OrgSetupForm({ data, onNext, onCancel }: OrgSetupFormProps) {
         <div className="mb-4">
           <input
             type="email"
-            name="email"
-            value={formData.email}
+            name="primaryEmail"
+            value={formData.primaryEmail}
             onChange={handleChange}
-            placeholder="Email"
+            placeholder="Primary Email"
             className="w-full p-3 border border-gray-300 rounded text-base bg-white"
           />
         </div>
@@ -187,8 +225,52 @@ function OrgSetupForm({ data, onNext, onCancel }: OrgSetupFormProps) {
           </div>
           <input
             type="tel"
-            name="phoneNumber"
-            value={formData.phoneNumber}
+            name="primaryPhone"
+            value={formData.primaryPhone}
+            onChange={handleChange}
+            placeholder="+1 (202)-524-1390"
+            className="w-full p-3 border border-gray-300 rounded text-base bg-white"
+          />
+        </div>
+
+        {/* Technical Contact Label */}
+        <div className="text-gray-600 text-base mb-4 font-medium">
+          Technical Contact
+        </div>
+
+        {/* Technical Contact Full Name */}
+        <div className="mb-4">
+          <input
+            type="text"
+            name="techContact"
+            value={formData.techContact}
+            onChange={handleChange}
+            placeholder="Technical Contact Full Name"
+            className="w-full p-3 border border-gray-300 rounded text-base bg-white"
+          />
+        </div>
+
+        {/* Technical Email */}
+        <div className="mb-4">
+          <input
+            type="email"
+            name="techEmail"
+            value={formData.techEmail}
+            onChange={handleChange}
+            placeholder="Technical Email"
+            className="w-full p-3 border border-gray-300 rounded text-base bg-white"
+          />
+        </div>
+
+        {/* Technical Phone Number */}
+        <div className="mb-10">
+          <div className="text-gray-400 text-sm mb-1">
+            Technical Phone Number
+          </div>
+          <input
+            type="tel"
+            name="techPhone"
+            value={formData.techPhone}
             onChange={handleChange}
             placeholder="+1 (202)-524-1390"
             className="w-full p-3 border border-gray-300 rounded text-base bg-white"

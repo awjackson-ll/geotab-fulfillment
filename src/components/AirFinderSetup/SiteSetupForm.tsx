@@ -10,7 +10,7 @@ interface SiteSetupFormProps {
 function SiteSetupForm({ data, onNext, onBack, onCancel }: SiteSetupFormProps) {
   const [formData, setFormData] = useState({
     name: '',
-    location: 'onsite', // 'onsite' or 'everywhere'
+    location: 'everywhere', // 'onsite' or 'everywhere'
     airFinderType: 'ble', // 'ble' or 'xle'
     enableWorkflows: false,
     enableReports: false,

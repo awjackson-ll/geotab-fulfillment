@@ -62,21 +62,20 @@ function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProp
     
     // Placeholder product codes - update this array with actual Link Labs product codes
     const productCodes = [
-      /^[a-zA-Z0-9]*ATK02[a-zA-Z0-9]*$/,
-      /^[a-zA-Z0-9]*ATK42[a-zA-Z0-9]*$/,
-      /^[a-zA-Z0-9]*RTK02[a-zA-Z0-9]*$/,
-      /^[a-zA-Z0-9]*E9[a-zA-Z0-9]*$/,
-      /^[a-zA-Z0-9]*E7[a-zA-Z0-9]*$/,
-      /^[a-zA-Z0-9]*E8[a-zA-Z0-9]*$/,
-      /^[a-zA-Z0-9]*C10[a-zA-Z0-9]*$/,
-      /^[a-zA-Z0-9]*S1[a-zA-Z0-9]*$/,
-      /^[a-zA-Z0-9]*S4[a-zA-Z0-9]*$/,
-      /^[a-zA-Z0-9]*V[a-zA-Z0-9]*$/,
-      // Add more product codes here when provided
+      "ATK02",
+      "ATK42",
+      "RTK02",
+      "E9",
+      "E7",
+      "E8",
+      "C10",
+      "S1",
+      "S4",
+      "V",
     ];
     
     const valueStr = value.toString().trim().toUpperCase();
-    return productCodes.some(code => valueStr.includes(code.toUpperCase()));
+    return productCodes.some(code => valueStr.includes(code));
   };
 
   const parseXLSXFile = async (file: File): Promise<{ assets: Array<{macAddress: string, productCode: string, rowIndex: number}>, allData: any[][] }> => {
@@ -93,7 +92,7 @@ function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProp
           const worksheet = workbook.Sheets[firstSheetName];
           
           // Convert to JSON array
-          const jsonData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+          const jsonData: any[][] = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false });
           
           console.log('Parsed XLSX data:', jsonData);
           
@@ -151,7 +150,7 @@ function AssetSetupForm({ data, onFinish, onBack, onCancel }: AssetSetupFormProp
 
   const mapAssetsToFormData = (assets: Array<{macAddress: string, productCode: string, rowIndex: number}>) => {
     return assets.map((asset, index) => ({
-      assetName: '',
+      assetName: asset.macAddress,
       macAddress: asset.macAddress,
       category: '',
       group: '',
