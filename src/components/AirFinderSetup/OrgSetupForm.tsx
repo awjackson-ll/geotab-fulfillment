@@ -87,7 +87,7 @@ function OrgSetupForm({ data, onNext, onCancel }: OrgSetupFormProps) {
         setErrorMessage(response.message);
         return; // Don't proceed to next step
       }
-      
+      sessionStorage.setItem("orgId", response.id);
       // Success case
       onNext(formData);
     } catch (error) {

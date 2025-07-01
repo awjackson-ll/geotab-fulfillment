@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { airfinderAPI } from '../../services/airfinderAPI';
+import ErrorBanner from '../ErrorBanner';
 
 interface SiteSetupFormProps {
   data: any;
@@ -9,29 +11,108 @@ interface SiteSetupFormProps {
 
 function SiteSetupForm({ data, onNext, onBack, onCancel }: SiteSetupFormProps) {
   const [formData, setFormData] = useState({
-    name: '',
-    location: 'everywhere', // 'onsite' or 'everywhere'
-    airFinderType: 'ble', // 'ble' or 'xle'
-    enableWorkflows: false,
-    enableReports: false,
-    enableAnalytics: false,
+    configValue: '',
+    properties: {
+      isEverywhere: false,
+      isAf2: true,
+      isAf3: false,
+      isWorkflowEnable: false,
+      isCustomReportsEnable: false,
+      isReportsEnable: false,
+      organizationId: sessionStorage.getItem("orgId"),
+    },
     ...data
   });
 
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
   const handleChange = (e: any) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev: any) => ({ 
-      ...prev, 
-      [name]: type === 'checkbox' ? checked : value 
-    }));
+    
+    if (name === 'location') {
+      // Handle location radio buttons
+      setFormData((prev: any) => ({
+        ...prev,
+        properties: {
+          ...prev.properties,
+          isEverywhere: value === 'everywhere',
+          isAf2: value === 'onsite',
+          isAf3: value === 'onsite'
+        }
+      }));
+    } else if (name === 'airFinderType') {
+      // Handle AirFinder type radio buttons
+      setFormData((prev: any) => ({
+        ...prev,
+        properties: {
+          ...prev.properties,
+          isAf2: value === 'ble',
+          isAf3: value === 'xle'
+        }
+      }));
+    } else if (name === 'enableWorkflows') {
+      // Handle Enable Workflows checkbox
+      setFormData((prev: any) => ({
+        ...prev,
+        properties: {
+          ...prev.properties,
+          isWorkflowEnable: checked
+        }
+      }));
+    } else if (name === 'enableReports') {
+      // Handle Enable Reports checkbox
+      setFormData((prev: any) => ({
+        ...prev,
+        properties: {
+          ...prev.properties,
+          isReportsEnable: checked
+        }
+      }));
+    } else if (name === 'enableAnalytics') {
+      // Handle Enable Analytics checkbox
+      setFormData((prev: any) => ({
+        ...prev,
+        properties: {
+          ...prev.properties,
+          isCustomReportsEnable: checked
+        }
+      }));
+    } else {
+      // Handle top-level properties (like name)
+      setFormData((prev: any) => ({ 
+        ...prev, 
+        [name]: type === 'checkbox' ? checked : value 
+      }));
+    }
   };
 
-  const handleNext = () => {
-    if (!formData.name) {
+  const handleNext = async () => {
+    // Clear any previous error messages
+    setErrorMessage('');
+    
+    // Validate required fields
+    if (!formData.configValue) {
       alert("Please fill in the site name.");
       return;
     }
-    onNext(formData);
+    
+    const authString = localStorage.getItem("auth");
+    const auth = authString ? JSON.parse(authString) : null;
+    
+    try {
+      const response = await airfinderAPI.createSite(auth?.token, JSON.stringify(formData));
+      
+      // Check if response has an error message
+      if (response.message) {
+        setErrorMessage(response.message);
+        return; // Don't proceed to next step
+      }
+      
+      // Success case
+      onNext(formData);
+    } catch (error) {
+      console.error("API Error:", error);
+    }
   };
 
   return (
@@ -43,12 +124,14 @@ function SiteSetupForm({ data, onNext, onBack, onCancel }: SiteSetupFormProps) {
 
       {/* Form Content */}
       <div className="p-5">
+        {/* Error Banner */}
+        {errorMessage && <ErrorBanner message={errorMessage} className='fixed bottom-4 right-4 z-50'/>}
         {/* Name */}
         <div className="mb-6">
           <input
             type="text"
-            name="name"
-            value={formData.name}
+            name="configValue"
+            value={formData.configValue}
             onChange={handleChange}
             placeholder="Name"
             className="w-full p-3 border border-gray-300 rounded text-base bg-white"
@@ -63,7 +146,7 @@ function SiteSetupForm({ data, onNext, onBack, onCancel }: SiteSetupFormProps) {
                 type="radio"
                 name="location"
                 value="onsite"
-                checked={formData.location === 'onsite'}
+                checked={!formData.properties.isEverywhere}
                 onChange={handleChange}
                 className="w-5 h-5 text-[#46A0BF] border-2 border-gray-300 focus:ring-[#46A0BF] focus:ring-2"
               />
@@ -75,7 +158,7 @@ function SiteSetupForm({ data, onNext, onBack, onCancel }: SiteSetupFormProps) {
                 type="radio"
                 name="location"
                 value="everywhere"
-                checked={formData.location === 'everywhere'}
+                checked={formData.properties.isEverywhere}
                 onChange={handleChange}
                 className="w-5 h-5 text-[#46A0BF] border-2 border-gray-300 focus:ring-[#46A0BF] focus:ring-2"
               />
@@ -87,26 +170,28 @@ function SiteSetupForm({ data, onNext, onBack, onCancel }: SiteSetupFormProps) {
         {/* AirFinder Type Options */}
         <div className="mb-8">
           <div className="space-y-3">
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className={`flex items-center gap-2 cursor-pointer ${formData.properties.isEverywhere ? 'opacity-50 cursor-not-allowed' : ''}`}>
               <input
                 type="radio"
                 name="airFinderType"
                 value="ble"
-                checked={formData.airFinderType === 'ble'}
+                checked={formData.properties.isAf2}
+                disabled={formData.properties.isEverywhere}
                 onChange={handleChange}
-                className="w-5 h-5 text-[#46A0BF] border-2 border-gray-300 focus:ring-[#46A0BF] focus:ring-2"
+                className="w-5 h-5 text-[#46A0BF] border-2 border-gray-300 focus:ring-[#46A0BF] focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <span className="text-gray-700 text-base">AirFinder BLE</span>
             </label>
 
-            <label className="flex items-center gap-2 cursor-pointer">
+            <label className={`flex items-center gap-2 cursor-pointer ${formData.properties.isEverywhere ? 'opacity-50 cursor-not-allowed' : ''}`}>
               <input
                 type="radio"
                 name="airFinderType"
                 value="xle"
-                checked={formData.airFinderType === 'xle'}
+                checked={formData.properties.isAf3}
+                disabled={formData.properties.isEverywhere}
                 onChange={handleChange}
-                className="w-5 h-5 text-[#46A0BF] border-2 border-gray-300 focus:ring-[#46A0BF] focus:ring-2"
+                className="w-5 h-5 text-[#46A0BF] border-2 border-gray-300 focus:ring-[#46A0BF] focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed"
               />
               <span className="text-gray-700 text-base">AirFinder XLE</span>
             </label>
@@ -123,7 +208,7 @@ function SiteSetupForm({ data, onNext, onBack, onCancel }: SiteSetupFormProps) {
                 <input
                   type="checkbox"
                   name="enableWorkflows"
-                  checked={formData.enableWorkflows}
+                  checked={formData.properties.isWorkflowEnable}
                   onChange={handleChange}
                   className="w-4 h-4 text-[#46A0BF] border-2 border-gray-300 rounded focus:ring-[#46A0BF] focus:ring-2"
                 />
@@ -134,7 +219,7 @@ function SiteSetupForm({ data, onNext, onBack, onCancel }: SiteSetupFormProps) {
                 <input
                   type="checkbox"
                   name="enableReports"
-                  checked={formData.enableReports}
+                  checked={formData.properties.isReportsEnable}
                   onChange={handleChange}
                   className="w-4 h-4 text-[#46A0BF] border-2 border-gray-300 rounded focus:ring-[#46A0BF] focus:ring-2"
                 />
@@ -151,7 +236,7 @@ function SiteSetupForm({ data, onNext, onBack, onCancel }: SiteSetupFormProps) {
                 <input
                   type="checkbox"
                   name="enableAnalytics"
-                  checked={formData.enableAnalytics}
+                  checked={formData.properties.isCustomReportsEnable}
                   onChange={handleChange}
                   className="w-4 h-4 text-[#46A0BF] border-2 border-gray-300 rounded focus:ring-[#46A0BF] focus:ring-2"
                 />

@@ -15,6 +15,16 @@ export const airfinderAPI = {
     return await response.json();
   },
 
+  createSite: async (authHeader: string, formData: string): Promise<Site[]> => {
+    const response = await fetch(`${API_BASE_URL}/networkAsset/airfinder/sites`, {
+      method: 'POST',
+      headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' },
+      body: formData
+    });
+
+    return await response.json();
+  },
+
   fetchOrganizationSites: async (orgId: string, authHeader: string): Promise<Site[]> => {
     const response = await fetch(`${API_BASE_URL}/networkAsset/airfinder/${orgId}/sites`, {
       headers: { 'Authorization': authHeader }
